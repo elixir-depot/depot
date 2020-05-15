@@ -1,6 +1,7 @@
 # Depot
 
-[Hex Package](https://hex.pm/depot).
+![Elixir CI](https://github.com/LostKobrakai/depot/workflows/Elixir%20CI/badge.svg)  
+[Hex Package](https://hex.pm/depot) | 
 [Online Documentation](https://hexdocs.pm/depot).
 
 <!-- MDOC !-->
