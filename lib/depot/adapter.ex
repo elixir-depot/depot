@@ -1,4 +1,7 @@
 defmodule Depot.Adapter do
+  @moduledoc """
+  Behaviour for how `Depot` adapters work.
+  """
   @type path :: Path.t()
   @opaque config :: struct
 

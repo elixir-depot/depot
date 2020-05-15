@@ -12,12 +12,21 @@ defmodule Depot.MixProject do
       package: package(),
       deps: deps(),
       name: "Postgrex",
-      source_url: "https://github.com/elixir-ecto/postgrex"
+      source_url: "https://github.com/LostKobrakai/depot"
     ]
   end
 
   defp description() do
     "A filesystem abstraction for elixir."
+  end
+
+  defp package() do
+    [
+      # These are the default files included in the package
+      files: ~w(lib  mix.exs README* LICENSE*),
+      licenses: ["Apache-2.0"],
+      links: %{"GitHub" => "https://github.com/LostKobrakai/depot"}
+    ]
   end
 
   # Run "mix help compile.app" to learn about applications.

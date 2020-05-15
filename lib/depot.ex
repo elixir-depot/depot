@@ -1,11 +1,16 @@
 defmodule Depot do
-  @moduledoc """
-  Documentation for `Depot`.
+  @external_resource "README.md"
+  @moduledoc @external_resource
+             |> File.read!()
+             |> String.split("<!-- MDOC !-->")
+             |> Enum.fetch!(1)
+
+  @type adapter :: module()
+  @type filesystem :: {module(), Depot.Adapter.config()}
+
+  @doc """
+  Bundle a filesystem in a module.
   """
-
-  @type adapter_process_name :: atom() | {:global, term()} | {:via, module(), term()}
-  @type adapter :: module() | {module(), adapter_process_name}
-
   defmacro __using__(opts) do
     {adapter, opts} = Keyword.pop!(opts, :adapter)
 

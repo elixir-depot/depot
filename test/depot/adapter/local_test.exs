@@ -1,5 +1,6 @@
 defmodule Depot.Adapter.LocalTest do
   use ExUnit.Case, async: true
+  doctest Depot.Adapter.Local
 
   setup do
     {:ok, prefix} = Briefly.create(directory: true)

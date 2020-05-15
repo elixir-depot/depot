@@ -1,5 +1,28 @@
 defmodule Depot.Adapter.Local do
+  @moduledoc """
+  Depot Adapter for the local filesystem.
+
+  ## Direct usage
+
+      iex> {:ok, prefix} = Briefly.create(directory: true)
+      iex> filesystem = Depot.Adapter.Local.configure(prefix: prefix)
+      iex> :ok = Depot.write(filesystem, "test.txt", "Hello World")
+      iex> {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
+
+  ## Usage with a module
+
+      defmodule LocalFileSystem do
+        use Depot,
+          adapter: Depot.Adapter.Local,
+          prefix: prefix
+      end
+
+      LocalFileSystem.write("test.txt", "Hello World")
+      {:ok, "Hello World"} = LocalFileSystem.read("test.txt")
+  """
+
   defmodule Config do
+    @moduledoc false
     defstruct prefix: nil
   end
 
