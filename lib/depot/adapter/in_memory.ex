@@ -54,15 +54,16 @@ defmodule Depot.Adapter.InMemory do
   @impl Depot.Adapter
   def write(config, path, contents) do
     Agent.update(Depot.Registry.via(__MODULE__, config.name), fn state ->
-      Map.put(state, path, contents)
+      put_in(state, accessor(path, %{}), IO.iodata_to_binary(contents))
     end)
   end
 
   @impl Depot.Adapter
   def read(config, path) do
     Agent.get(Depot.Registry.via(__MODULE__, config.name), fn state ->
-      with :error <- Map.fetch(state, path) do
-        {:error, :enoent}
+      case get_in(state, accessor(path)) do
+        binary when is_binary(binary) -> {:ok, binary}
+        _ -> {:error, :enoent}
       end
     end)
   end
@@ -70,9 +71,61 @@ defmodule Depot.Adapter.InMemory do
   @impl Depot.Adapter
   def delete(%Config{} = config, path) do
     Agent.update(Depot.Registry.via(__MODULE__, config.name), fn state ->
-      Map.delete(state, path)
+      {_, state} = pop_in(state, accessor(path))
+      state
     end)
 
     :ok
+  end
+
+  @impl Depot.Adapter
+  def list_contents(%Config{} = config, path) do
+    contents =
+      Agent.get(Depot.Registry.via(__MODULE__, config.name), fn state ->
+        paths =
+          case get_in(state, accessor(path)) do
+            %{} = map -> map
+            _ -> %{}
+          end
+
+        for {path, x} <- paths do
+          type =
+            case x do
+              %{} -> :directory
+              bin when is_binary(bin) -> :regular
+            end
+
+          size =
+            case type do
+              :regular -> byte_size(x)
+              :directory -> 0
+            end
+
+          %{
+            name: path,
+            type: type,
+            size: size,
+            mtime: 0
+          }
+        end
+      end)
+
+    {:ok, contents}
+  end
+
+  defp accessor(path, default \\ nil) when is_binary(path) do
+    path
+    |> Path.relative()
+    |> Path.split()
+    |> do_accessor([], default)
+    |> Enum.reverse()
+  end
+
+  defp do_accessor([segment], acc, default) do
+    [Access.key(segment, default) | acc]
+  end
+
+  defp do_accessor([segment | rest], acc, default) do
+    do_accessor(rest, [Access.key(segment, %{}) | acc], default)
   end
 end

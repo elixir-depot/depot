@@ -7,7 +7,8 @@ defmodule Depot.Adapter do
 
   @callback starts_processes() :: boolean
   @callback configure(keyword) :: {module(), config}
-  @callback write(config, path, contents :: binary) :: :ok | {:error, term}
+  @callback write(config, path, contents :: iodata()) :: :ok | {:error, term}
   @callback read(config, path) :: {:ok, binary} | {:error, term}
   @callback delete(config, path) :: :ok | {:error, term}
+  @callback list_contents(config, path) :: {:ok, [map]} | {:error, term}
 end

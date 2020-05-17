@@ -46,4 +46,24 @@ defmodule DepotTest do
 
     assert {:ok, "Hello World"} = InMemoryTest.read("test.txt")
   end
+
+  test "directory traversals are detected and reported" do
+    {:ok, prefix} = Briefly.create(directory: true)
+    filesystem = Depot.Adapter.Local.configure(prefix: prefix)
+
+    {:error, {:path, :traversal}} = Depot.write(filesystem, "../test.txt", "Hello World")
+    {:error, {:path, :traversal}} = Depot.read(filesystem, "../test.txt")
+    {:error, {:path, :traversal}} = Depot.delete(filesystem, "../test.txt")
+    {:error, {:path, :traversal}} = Depot.list_contents(filesystem, "../test")
+  end
+
+  test "relative paths are required" do
+    {:ok, prefix} = Briefly.create(directory: true)
+    filesystem = Depot.Adapter.Local.configure(prefix: prefix)
+
+    {:error, {:path, :absolute}} = Depot.write(filesystem, "/../test.txt", "Hello World")
+    {:error, {:path, :absolute}} = Depot.read(filesystem, "/../test.txt")
+    {:error, {:path, :absolute}} = Depot.delete(filesystem, "/../test.txt")
+    {:error, {:path, :absolute}} = Depot.list_contents(filesystem, "/../test")
+  end
 end

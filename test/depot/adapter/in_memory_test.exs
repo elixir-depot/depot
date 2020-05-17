@@ -21,8 +21,7 @@ defmodule Depot.Adapter.InMemoryTest do
 
       :ok = Depot.Adapter.InMemory.write(config, "folder/test.txt", "Hello World")
 
-      assert {:ok, "Hello World"} =
-               Agent.get(via(test), fn state -> Map.fetch(state, "folder/test.txt") end)
+      assert {:ok, "Hello World"} = Depot.Adapter.InMemory.read(config, "folder/test.txt")
     end
   end
 
