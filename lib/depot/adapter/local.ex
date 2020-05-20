@@ -80,6 +80,14 @@ defmodule Depot.Adapter.Local do
   end
 
   @impl Depot.Adapter
+  def file_exists(%Config{} = config, path) do
+    case File.exists?(full_path(config, path)) do
+      true -> {:ok, :exists}
+      false -> {:ok, :missing}
+    end
+  end
+
+  @impl Depot.Adapter
   def list_contents(%Config{} = config, path) do
     path = full_path(config, path)
 

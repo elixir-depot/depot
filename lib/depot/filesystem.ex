@@ -9,12 +9,13 @@ defmodule Depot.Filesystem do
               :ok | {:error, term}
   @callback copy(source :: Path.t(), destination :: Path.t(), opts :: keyword()) ::
               :ok | {:error, term}
+  @callback file_exists(path :: Path.t(), opts :: keyword()) ::
+              {:ok, :exists | :missing} | {:error, term}
   @callback list_contents(path :: Path.t(), opts :: keyword()) ::
               {:ok, [%Depot.Stat.Dir{} | %Depot.Stat.File{}]} | {:error, term}
 
-  @doc """
-  Bundle a filesystem in a module.
-  """
+  @doc false
+  @spec __using__(Macro.t()) :: Macro.t()
   defmacro __using__(opts) do
     {adapter, opts} = Keyword.pop!(opts, :adapter)
 
@@ -55,6 +56,10 @@ defmodule Depot.Filesystem do
       @impl true
       def copy(source, destination, opts \\ []),
         do: Depot.copy(@filesystem, source, destination, opts)
+
+      @impl true
+      def file_exists(path, opts \\ []),
+        do: Depot.file_exists(@filesystem, path, opts)
 
       @impl true
       def list_contents(path, opts \\ []),

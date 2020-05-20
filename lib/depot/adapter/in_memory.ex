@@ -105,6 +105,16 @@ defmodule Depot.Adapter.InMemory do
   end
 
   @impl Depot.Adapter
+  def file_exists(%Config{} = config, path) do
+    Agent.get(Depot.Registry.via(__MODULE__, config.name), fn state ->
+      case get_in(state, accessor(path)) do
+        binary when is_binary(binary) -> {:ok, :exists}
+        _ -> {:ok, :missing}
+      end
+    end)
+  end
+
+  @impl Depot.Adapter
   def list_contents(%Config{} = config, path) do
     contents =
       Agent.get(Depot.Registry.via(__MODULE__, config.name), fn state ->

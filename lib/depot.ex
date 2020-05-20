@@ -151,6 +151,34 @@ defmodule Depot do
   end
 
   @doc """
+  Copy a file from source to destination on a filesystem
+
+  ## Examples
+
+  ### Direct filesystem
+
+      filesystem = Depot.Adapter.Local.configure(prefix: "/home/user/storage")
+      :ok = Depot.copy(filesystem, "test.txt", "other-test.txt")
+
+  ### Module-based filesystem
+
+      defmodule LocalFileSystem do
+        use Depot.Filesystem,
+          adapter: Depot.Adapter.Local,
+          prefix: "/home/user/storage"
+      end
+
+      :ok = LocalFileSystem.copy("test.txt", "other-test.txt")
+
+  """
+  @spec file_exists(filesystem, Path.t(), keyword()) :: {:ok, :exists | :missing} | {:error, term}
+  def file_exists({adapter, config}, path, _opts \\ []) do
+    with {:ok, path} <- Depot.RelativePath.normalize(path) do
+      adapter.file_exists(config, path)
+    end
+  end
+
+  @doc """
   List the contents of a folder on a filesystem
 
   ## Examples

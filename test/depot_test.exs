@@ -19,6 +19,15 @@ defmodule DepotTest do
       assert :ok = Depot.write(filesystem, "test.txt", "Hello World")
     end
 
+    test "user can check if files exist on a filesystem", %{prefix: prefix} do
+      filesystem = Depot.Adapter.Local.configure(prefix: prefix)
+
+      :ok = Depot.write(filesystem, "test.txt", "Hello World")
+
+      assert {:ok, :exists} = Depot.file_exists(filesystem, "test.txt")
+      assert {:ok, :missing} = Depot.file_exists(filesystem, "not-test.txt")
+    end
+
     test "user can read from filesystem", %{prefix: prefix} do
       filesystem = Depot.Adapter.Local.configure(prefix: prefix)
 
@@ -84,6 +93,19 @@ defmodule DepotTest do
       end
 
       assert :ok = Local.WriteTest.write("test.txt", "Hello World")
+    end
+
+    test "user can check if files exist on a filesystem", %{prefix: prefix} do
+      defmodule Local.FileExistsTest do
+        use Depot.Filesystem,
+          adapter: Depot.Adapter.Local,
+          prefix: prefix
+      end
+
+      :ok = Local.FileExistsTest.write("test.txt", "Hello World")
+
+      assert {:ok, :exists} = Local.FileExistsTest.file_exists("test.txt")
+      assert {:ok, :missing} = Local.FileExistsTest.file_exists("not-test.txt")
     end
 
     test "user can read from filesystem", %{prefix: prefix} do
@@ -166,6 +188,17 @@ defmodule DepotTest do
       assert :ok = Depot.write(filesystem, "test.txt", "Hello World")
     end
 
+    test "user can check if files exist on a filesystem" do
+      filesystem = Depot.Adapter.InMemory.configure(name: InMemoryTest)
+
+      start_supervised(filesystem)
+
+      :ok = Depot.write(filesystem, "test.txt", "Hello World")
+
+      assert {:ok, :exists} = Depot.file_exists(filesystem, "test.txt")
+      assert {:ok, :missing} = Depot.file_exists(filesystem, "not-test.txt")
+    end
+
     test "user can read from filesystem" do
       filesystem = Depot.Adapter.InMemory.configure(name: InMemoryTest)
 
@@ -237,6 +270,20 @@ defmodule DepotTest do
       start_supervised(InMemory.WriteTest)
 
       assert :ok = InMemory.WriteTest.write("test.txt", "Hello World")
+    end
+
+    test "user can check if files exist on a filesystem" do
+      defmodule InMemory.FileExistsTest do
+        use Depot.Filesystem,
+          adapter: Depot.Adapter.InMemory
+      end
+
+      start_supervised(InMemory.FileExistsTest)
+
+      :ok = InMemory.FileExistsTest.write("test.txt", "Hello World")
+
+      assert {:ok, :exists} = InMemory.FileExistsTest.file_exists("test.txt")
+      assert {:ok, :missing} = InMemory.FileExistsTest.file_exists("not-test.txt")
     end
 
     test "user can read from filesystem" do

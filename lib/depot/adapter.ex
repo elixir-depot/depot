@@ -12,6 +12,7 @@ defmodule Depot.Adapter do
   @callback delete(config, path) :: :ok | {:error, term}
   @callback move(config, source :: path, destination :: path) :: :ok | {:error, term}
   @callback copy(config, source :: path, destination :: path) :: :ok | {:error, term}
+  @callback file_exists(config, path) :: {:ok, :exists | :missing} | {:error, term}
   @callback list_contents(config, path) ::
               {:ok, [%Depot.Stat.Dir{} | %Depot.Stat.File{}]} | {:error, term}
 end
