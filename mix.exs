@@ -4,15 +4,16 @@ defmodule Depot.MixProject do
   def project do
     [
       app: :depot,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
       package: package(),
       deps: deps(),
-      name: "Postgrex",
-      source_url: "https://github.com/LostKobrakai/depot"
+      name: "Depot",
+      source_url: "https://github.com/LostKobrakai/depot",
+      docs: docs()
     ]
   end
 
@@ -26,6 +27,19 @@ defmodule Depot.MixProject do
       files: ~w(lib  mix.exs README* LICENSE*),
       licenses: ["Apache-2.0"],
       links: %{"GitHub" => "https://github.com/LostKobrakai/depot"}
+    ]
+  end
+
+  defp docs do
+    [
+      groups_for_modules: [
+        Stat: [
+          ~r/^Depot\.Stat\./
+        ],
+        Adapters: [
+          ~r/^Depot\.Adapter\./
+        ]
+      ]
     ]
   end
 
