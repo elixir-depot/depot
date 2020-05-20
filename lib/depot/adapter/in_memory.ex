@@ -89,24 +89,21 @@ defmodule Depot.Adapter.InMemory do
           end
 
         for {path, x} <- paths do
-          type =
-            case x do
-              %{} -> :directory
-              bin when is_binary(bin) -> :regular
-            end
+          case x do
+            %{} ->
+              %Depot.Stat.Dir{
+                name: path,
+                size: 0,
+                mtime: 0
+              }
 
-          size =
-            case type do
-              :regular -> byte_size(x)
-              :directory -> 0
-            end
-
-          %{
-            name: path,
-            type: type,
-            size: size,
-            mtime: 0
-          }
+            bin when is_binary(bin) ->
+              %Depot.Stat.File{
+                name: path,
+                size: byte_size(bin),
+                mtime: 0
+              }
+          end
         end
       end)
 
@@ -115,7 +112,7 @@ defmodule Depot.Adapter.InMemory do
 
   defp accessor(path, default \\ nil) when is_binary(path) do
     path
-    |> Path.relative()
+    |> Path.absname("/")
     |> Path.split()
     |> do_accessor([], default)
     |> Enum.reverse()

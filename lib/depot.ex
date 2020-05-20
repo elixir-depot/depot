@@ -40,7 +40,7 @@ defmodule Depot do
       def read(path, opts \\ []),
         do: Depot.read(@filesystem, path, opts)
 
-      # @impl true
+      @impl true
       def delete(path, opts \\ []),
         do: Depot.delete(@filesystem, path, opts)
 
@@ -52,6 +52,9 @@ defmodule Depot do
 
   @callback write(path :: Path.t(), contents :: binary, opts :: keyword()) :: :ok | {:error, term}
   @callback read(path :: Path.t(), opts :: keyword()) :: {:ok, binary} | {:error, term}
+  @callback delete(path :: Path.t(), opts :: keyword()) :: :ok | {:error, term}
+  @callback delete(path :: Path.t(), opts :: keyword()) ::
+              {:ok, [%Depot.Stat.Dir{} | %Depot.Stat.File{}]} | {:error, term}
 
   def write({adapter, config}, path, contents, _opts \\ []) do
     with {:ok, path} <- Depot.RelativePath.normalize(path) do

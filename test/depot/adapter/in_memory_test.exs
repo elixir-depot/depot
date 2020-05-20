@@ -11,7 +11,11 @@ defmodule Depot.Adapter.InMemoryTest do
       :ok = Depot.Adapter.InMemory.write(config, "test.txt", "Hello World")
 
       assert {:ok, "Hello World"} =
-               Agent.get(via(test), fn state -> Map.fetch(state, "test.txt") end)
+               Agent.get(via(test), fn state ->
+                 state
+                 |> Map.fetch!("/")
+                 |> Map.fetch("test.txt")
+               end)
     end
 
     test "folders are automatically created is missing", %{test: test} do
@@ -31,7 +35,7 @@ defmodule Depot.Adapter.InMemoryTest do
 
       start_supervised(filesystem)
 
-      :ok = Agent.update(via(test), fn state -> Map.put(state, "test.txt", "Hello World") end)
+      :ok = Agent.update(via(test), fn _state -> %{"/" => %{"test.txt" => "Hello World"}} end)
 
       assert {:ok, "Hello World"} = Depot.Adapter.InMemory.read(config, "test.txt")
     end
@@ -43,11 +47,16 @@ defmodule Depot.Adapter.InMemoryTest do
 
       start_supervised(filesystem)
 
-      :ok = Agent.update(via(test), fn state -> Map.put(state, "test.txt", "Hello World") end)
+      :ok = Agent.update(via(test), fn _state -> %{"/" => %{"test.txt" => "Hello World"}} end)
 
       assert :ok = Depot.Adapter.InMemory.delete(config, "test.txt")
 
-      assert :error = Agent.get(via(test), fn state -> Map.fetch(state, "test.txt") end)
+      assert :error =
+               Agent.get(via(test), fn state ->
+                 state
+                 |> Map.fetch!("/")
+                 |> Map.fetch("test.txt")
+               end)
     end
 
     test "successful even if no file to delete", %{test: test} do
@@ -57,7 +66,12 @@ defmodule Depot.Adapter.InMemoryTest do
 
       assert :ok = Depot.Adapter.InMemory.delete(config, "test.txt")
 
-      assert :error = Agent.get(via(test), fn state -> Map.fetch(state, "test.txt") end)
+      assert :error =
+               Agent.get(via(test), fn state ->
+                 state
+                 |> Map.fetch!("/")
+                 |> Map.fetch("test.txt")
+               end)
     end
   end
 

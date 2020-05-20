@@ -61,15 +61,17 @@ defmodule Depot.Adapter.Local do
 
   @impl Depot.Adapter
   def list_contents(%Config{} = config, path) do
-    with {:ok, files} <- File.ls(full_path(config, path)) do
+    path = full_path(config, path)
+
+    with {:ok, files} <- File.ls(path) do
       contents =
-        for file <- files, {:ok, stat} = File.stat(Path.join(path, file), time: :posix) do
-          %{
-            type: stat.type,
-            name: file,
-            size: stat.size,
-            mtime: stat.mtime
-          }
+        for file <- files,
+            {:ok, stat} = File.stat(Path.join(path, file), time: :posix),
+            stat.type in [:directory, :regular] do
+          case stat.type do
+            :directory -> %Depot.Stat.Dir{name: file, size: stat.size, mtime: stat.mtime}
+            :regular -> %Depot.Stat.File{name: file, size: stat.size, mtime: stat.mtime}
+          end
         end
 
       {:ok, contents}
