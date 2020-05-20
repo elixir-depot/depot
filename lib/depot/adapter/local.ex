@@ -12,7 +12,7 @@ defmodule Depot.Adapter.Local do
   ## Usage with a module
 
       defmodule LocalFileSystem do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
           prefix: prefix
       end

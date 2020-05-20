@@ -78,7 +78,7 @@ defmodule DepotTest do
 
     test "user can write to filesystem", %{prefix: prefix} do
       defmodule Local.WriteTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
           prefix: prefix
       end
@@ -88,7 +88,7 @@ defmodule DepotTest do
 
     test "user can read from filesystem", %{prefix: prefix} do
       defmodule Local.ReadTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
           prefix: prefix
       end
@@ -100,7 +100,7 @@ defmodule DepotTest do
 
     test "user can delete from filesystem", %{prefix: prefix} do
       defmodule Local.DeleteTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
           prefix: prefix
       end
@@ -113,7 +113,7 @@ defmodule DepotTest do
 
     test "user can move files", %{prefix: prefix} do
       defmodule Local.MoveTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
           prefix: prefix
       end
@@ -127,7 +127,7 @@ defmodule DepotTest do
 
     test "user can copy files", %{prefix: prefix} do
       defmodule Local.CopyTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
           prefix: prefix
       end
@@ -141,7 +141,7 @@ defmodule DepotTest do
 
     test "user can list files", %{prefix: prefix} do
       defmodule Local.ListContentsTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
           prefix: prefix
       end
@@ -230,7 +230,7 @@ defmodule DepotTest do
   describe "module based filesystem with own processes" do
     test "user can write to filesystem" do
       defmodule InMemory.WriteTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.InMemory
       end
 
@@ -241,7 +241,7 @@ defmodule DepotTest do
 
     test "user can read from filesystem" do
       defmodule InMemory.ReadTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.InMemory
       end
 
@@ -254,7 +254,7 @@ defmodule DepotTest do
 
     test "user can delete from filesystem" do
       defmodule InMemory.DeleteTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.InMemory
       end
 
@@ -268,7 +268,7 @@ defmodule DepotTest do
 
     test "user can move files" do
       defmodule InMemory.MoveTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.InMemory
       end
 
@@ -283,7 +283,7 @@ defmodule DepotTest do
 
     test "user can copy files" do
       defmodule InMemory.CopyTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.InMemory
       end
 
@@ -298,7 +298,7 @@ defmodule DepotTest do
 
     test "user can list files" do
       defmodule InMemory.ListContentsTest do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.InMemory
       end
 

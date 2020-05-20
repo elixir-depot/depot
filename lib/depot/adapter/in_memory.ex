@@ -12,7 +12,7 @@ defmodule Depot.Adapter.InMemory do
   ## Usage with a module
 
       defmodule InMemoryFileSystem do
-        use Depot,
+        use Depot.Filesystem,
           adapter: Depot.Adapter.InMemory
       end
 
