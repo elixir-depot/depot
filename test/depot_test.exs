@@ -36,6 +36,26 @@ defmodule DepotTest do
       assert {:error, _} = Depot.read(filesystem, "test.txt")
     end
 
+    test "user can move files", %{prefix: prefix} do
+      filesystem = Depot.Adapter.Local.configure(prefix: prefix)
+
+      :ok = Depot.write(filesystem, "test.txt", "Hello World")
+      :ok = Depot.move(filesystem, "test.txt", "not-test.txt")
+
+      assert {:error, _} = Depot.read(filesystem, "test.txt")
+      assert {:ok, "Hello World"} = Depot.read(filesystem, "not-test.txt")
+    end
+
+    test "user can copy files", %{prefix: prefix} do
+      filesystem = Depot.Adapter.Local.configure(prefix: prefix)
+
+      :ok = Depot.write(filesystem, "test.txt", "Hello World")
+      :ok = Depot.copy(filesystem, "test.txt", "not-test.txt")
+
+      assert {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
+      assert {:ok, "Hello World"} = Depot.read(filesystem, "not-test.txt")
+    end
+
     test "user can list files", %{prefix: prefix} do
       filesystem = Depot.Adapter.Local.configure(prefix: prefix)
 
@@ -91,6 +111,34 @@ defmodule DepotTest do
       assert {:error, _} = Local.DeleteTest.read("test.txt")
     end
 
+    test "user can move files", %{prefix: prefix} do
+      defmodule Local.MoveTest do
+        use Depot,
+          adapter: Depot.Adapter.Local,
+          prefix: prefix
+      end
+
+      :ok = Local.MoveTest.write("test.txt", "Hello World")
+      :ok = Local.MoveTest.move("test.txt", "not-test.txt")
+
+      assert {:error, _} = Local.MoveTest.read("test.txt")
+      assert {:ok, "Hello World"} = Local.MoveTest.read("not-test.txt")
+    end
+
+    test "user can copy files", %{prefix: prefix} do
+      defmodule Local.CopyTest do
+        use Depot,
+          adapter: Depot.Adapter.Local,
+          prefix: prefix
+      end
+
+      :ok = Local.CopyTest.write("test.txt", "Hello World")
+      :ok = Local.CopyTest.copy("test.txt", "not-test.txt")
+
+      assert {:ok, "Hello World"} = Local.CopyTest.read("test.txt")
+      assert {:ok, "Hello World"} = Local.CopyTest.read("not-test.txt")
+    end
+
     test "user can list files", %{prefix: prefix} do
       defmodule Local.ListContentsTest do
         use Depot,
@@ -137,6 +185,30 @@ defmodule DepotTest do
       :ok = Depot.delete(filesystem, "test.txt")
 
       assert {:error, _} = Depot.read(filesystem, "test.txt")
+    end
+
+    test "user can move files" do
+      filesystem = Depot.Adapter.InMemory.configure(name: InMemoryTest)
+
+      start_supervised(filesystem)
+
+      :ok = Depot.write(filesystem, "test.txt", "Hello World")
+      :ok = Depot.move(filesystem, "test.txt", "not-test.txt")
+
+      assert {:error, _} = Depot.read(filesystem, "test.txt")
+      assert {:ok, "Hello World"} = Depot.read(filesystem, "not-test.txt")
+    end
+
+    test "user can copy files" do
+      filesystem = Depot.Adapter.InMemory.configure(name: InMemoryTest)
+
+      start_supervised(filesystem)
+
+      :ok = Depot.write(filesystem, "test.txt", "Hello World")
+      :ok = Depot.copy(filesystem, "test.txt", "not-test.txt")
+
+      assert {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
+      assert {:ok, "Hello World"} = Depot.read(filesystem, "not-test.txt")
     end
 
     test "user can list files" do
@@ -192,6 +264,36 @@ defmodule DepotTest do
       :ok = InMemory.DeleteTest.delete("test.txt")
 
       assert {:error, _} = InMemory.DeleteTest.read("test.txt")
+    end
+
+    test "user can move files" do
+      defmodule InMemory.MoveTest do
+        use Depot,
+          adapter: Depot.Adapter.InMemory
+      end
+
+      start_supervised(InMemory.MoveTest)
+
+      :ok = InMemory.MoveTest.write("test.txt", "Hello World")
+      :ok = InMemory.MoveTest.move("test.txt", "not-test.txt")
+
+      assert {:error, _} = InMemory.MoveTest.read("test.txt")
+      assert {:ok, "Hello World"} = InMemory.MoveTest.read("not-test.txt")
+    end
+
+    test "user can copy files" do
+      defmodule InMemory.CopyTest do
+        use Depot,
+          adapter: Depot.Adapter.InMemory
+      end
+
+      start_supervised(InMemory.CopyTest)
+
+      :ok = InMemory.CopyTest.write("test.txt", "Hello World")
+      :ok = InMemory.CopyTest.copy("test.txt", "not-test.txt")
+
+      assert {:ok, "Hello World"} = InMemory.CopyTest.read("test.txt")
+      assert {:ok, "Hello World"} = InMemory.CopyTest.read("not-test.txt")
     end
 
     test "user can list files" do

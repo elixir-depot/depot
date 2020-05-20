@@ -44,7 +44,15 @@ defmodule Depot do
       def delete(path, opts \\ []),
         do: Depot.delete(@filesystem, path, opts)
 
-      # @impl true
+      @impl true
+      def move(source, destination, opts \\ []),
+        do: Depot.move(@filesystem, source, destination, opts)
+
+      @impl true
+      def copy(source, destination, opts \\ []),
+        do: Depot.copy(@filesystem, source, destination, opts)
+
+      @impl true
       def list_contents(path, opts \\ []),
         do: Depot.list_contents(@filesystem, path, opts)
     end
@@ -53,9 +61,14 @@ defmodule Depot do
   @callback write(path :: Path.t(), contents :: binary, opts :: keyword()) :: :ok | {:error, term}
   @callback read(path :: Path.t(), opts :: keyword()) :: {:ok, binary} | {:error, term}
   @callback delete(path :: Path.t(), opts :: keyword()) :: :ok | {:error, term}
-  @callback delete(path :: Path.t(), opts :: keyword()) ::
+  @callback move(source :: Path.t(), destination :: Path.t(), opts :: keyword()) ::
+              :ok | {:error, term}
+  @callback copy(source :: Path.t(), destination :: Path.t(), opts :: keyword()) ::
+              :ok | {:error, term}
+  @callback list_contents(path :: Path.t(), opts :: keyword()) ::
               {:ok, [%Depot.Stat.Dir{} | %Depot.Stat.File{}]} | {:error, term}
 
+  @spec write({any, any}, binary, any, any) :: any
   def write({adapter, config}, path, contents, _opts \\ []) do
     with {:ok, path} <- Depot.RelativePath.normalize(path) do
       adapter.write(config, path, contents)
@@ -71,6 +84,20 @@ defmodule Depot do
   def delete({adapter, config}, path, _opts \\ []) do
     with {:ok, path} <- Depot.RelativePath.normalize(path) do
       adapter.delete(config, path)
+    end
+  end
+
+  def move({adapter, config}, source, destination, _opts \\ []) do
+    with {:ok, source} <- Depot.RelativePath.normalize(source),
+         {:ok, destination} <- Depot.RelativePath.normalize(destination) do
+      adapter.move(config, source, destination)
+    end
+  end
+
+  def copy({adapter, config}, source, destination, _opts \\ []) do
+    with {:ok, source} <- Depot.RelativePath.normalize(source),
+         {:ok, destination} <- Depot.RelativePath.normalize(destination) do
+      adapter.copy(config, source, destination)
     end
   end
 

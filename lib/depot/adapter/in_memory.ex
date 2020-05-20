@@ -79,6 +79,32 @@ defmodule Depot.Adapter.InMemory do
   end
 
   @impl Depot.Adapter
+  def move(%Config{} = config, source, destination) do
+    Agent.get_and_update(Depot.Registry.via(__MODULE__, config.name), fn state ->
+      case get_in(state, accessor(source)) do
+        binary when is_binary(binary) ->
+          {_, state} =
+            state |> put_in(accessor(destination, %{}), binary) |> pop_in(accessor(source))
+
+          {:ok, state}
+
+        _ ->
+          {{:error, :enoent}, state}
+      end
+    end)
+  end
+
+  @impl Depot.Adapter
+  def copy(%Config{} = config, source, destination) do
+    Agent.get_and_update(Depot.Registry.via(__MODULE__, config.name), fn state ->
+      case get_in(state, accessor(source)) do
+        binary when is_binary(binary) -> {:ok, put_in(state, accessor(destination, %{}), binary)}
+        _ -> {{:error, :enoent}, state}
+      end
+    end)
+  end
+
+  @impl Depot.Adapter
   def list_contents(%Config{} = config, path) do
     contents =
       Agent.get(Depot.Registry.via(__MODULE__, config.name), fn state ->

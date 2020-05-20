@@ -60,6 +60,26 @@ defmodule Depot.Adapter.Local do
   end
 
   @impl Depot.Adapter
+  def move(%Config{} = config, source, destination) do
+    source = full_path(config, source)
+    destination = full_path(config, destination)
+
+    with :ok <- destination |> Path.dirname() |> File.mkdir_p() do
+      File.rename(source, destination)
+    end
+  end
+
+  @impl Depot.Adapter
+  def copy(%Config{} = config, source, destination) do
+    source = full_path(config, source)
+    destination = full_path(config, destination)
+
+    with :ok <- destination |> Path.dirname() |> File.mkdir_p() do
+      File.cp(source, destination)
+    end
+  end
+
+  @impl Depot.Adapter
   def list_contents(%Config{} = config, path) do
     path = full_path(config, path)
 
