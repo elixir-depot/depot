@@ -1,10 +1,16 @@
 defmodule Depot.Adapter.LocalTest do
   use ExUnit.Case, async: true
+  import Depot.AdapterTest
   doctest Depot.Adapter.Local
 
   setup do
     {:ok, prefix} = Briefly.create(directory: true)
     {:ok, prefix: prefix}
+  end
+
+  adapter_test %{prefix: prefix} do
+    filesystem = Depot.Adapter.Local.configure(prefix: prefix)
+    {:ok, filesystem: filesystem}
   end
 
   describe "write" do

@@ -1,6 +1,13 @@
 defmodule Depot.Adapter.InMemoryTest do
   use ExUnit.Case, async: true
+  import Depot.AdapterTest
   doctest Depot.Adapter.InMemory
+
+  adapter_test %{test: test} do
+    filesystem = Depot.Adapter.InMemory.configure(name: test)
+    start_supervised(filesystem)
+    {:ok, filesystem: filesystem}
+  end
 
   describe "write" do
     test "success", %{test: test} do

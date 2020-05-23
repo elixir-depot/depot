@@ -4,13 +4,12 @@ defmodule Depot.MixProject do
   def project do
     [
       app: :depot,
-      version: "0.2.0",
+      version: "0.2.2",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
       package: package(),
-      deps: deps(),
       name: "Depot",
       source_url: "https://github.com/LostKobrakai/depot",
       docs: docs()
