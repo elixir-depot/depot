@@ -11,7 +11,7 @@ defmodule Depot.MixProject do
       description: description(),
       package: package(),
       name: "Depot",
-      source_url: "https://github.com/LostKobrakai/depot",
+      source_url: "https://github.com/elixir-depot/depot",
       docs: docs()
     ]
   end
@@ -25,7 +25,7 @@ defmodule Depot.MixProject do
       # These are the default files included in the package
       files: ~w(lib  mix.exs README* LICENSE*),
       licenses: ["Apache-2.0"],
-      links: %{"GitHub" => "https://github.com/LostKobrakai/depot"}
+      links: %{"GitHub" => "https://github.com/elixir-depot/depot"}
     ]
   end
 
