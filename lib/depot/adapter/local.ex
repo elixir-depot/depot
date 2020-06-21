@@ -55,6 +55,15 @@ defmodule Depot.Adapter.Local do
   end
 
   @impl Depot.Adapter
+  def read_stream(%Config{} = config, path) do
+    try do
+      {:ok, File.stream!(full_path(config, path))}
+    rescue
+      e -> {:error, e}
+    end
+  end
+
+  @impl Depot.Adapter
   def delete(%Config{} = config, path) do
     with {:error, :enoent} <- File.rm(full_path(config, path)), do: :ok
   end

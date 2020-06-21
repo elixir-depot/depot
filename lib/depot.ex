@@ -64,6 +64,12 @@ defmodule Depot do
     end
   end
 
+  def read_stream({adapter, config}, path, _opts \\ []) do
+    with {:ok, path} <- Depot.RelativePath.normalize(path) do
+      adapter.read_stream(config, path)
+    end
+  end
+
   @doc """
   Delete a file from a filesystem
 

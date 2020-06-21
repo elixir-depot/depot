@@ -46,6 +46,10 @@ defmodule Depot.Filesystem do
         do: Depot.read(@filesystem, path, opts)
 
       @impl true
+      def read_stream(path, opts \\ []),
+          do: Depot.read_stream(@filesystem, path, opts)
+
+      @impl true
       def delete(path, opts \\ []),
         do: Depot.delete(@filesystem, path, opts)
 
