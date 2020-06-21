@@ -17,17 +17,14 @@ defmodule Depot.Filesystem do
   @doc false
   @spec __using__(Macro.t()) :: Macro.t()
   defmacro __using__(opts) do
-    {adapter, opts} = Keyword.pop!(opts, :adapter)
+    quote bind_quoted: [opts: opts] do
+      @behaviour Depot.Filesystem
 
-    quote do
-      opts = unquote(opts)
+      {adapter, opts} = Depot.Filesystem.parse_opts(__MODULE__, opts)
       opts = Keyword.put_new(opts, :name, __MODULE__)
+      @filesystem adapter.configure(opts)
 
-      @behaviour unquote(__MODULE__)
-      @adapter unquote(adapter)
-      @filesystem @adapter.configure(opts)
-
-      if @adapter.starts_processes() do
+      if adapter.starts_processes() do
         def child_spec(_) do
           Supervisor.child_spec(@filesystem, %{})
         end
@@ -64,6 +61,23 @@ defmodule Depot.Filesystem do
       @impl true
       def list_contents(path, opts \\ []),
         do: Depot.list_contents(@filesystem, path, opts)
+    end
+  end
+
+  def parse_opts(module, opts) do
+    if Keyword.has_key?(opts, :otp_app) do
+      otp_app = Keyword.fetch!(opts, :otp_app)
+      config = Application.get_env(otp_app, module, [])
+      adapter = opts[:adapter] || config[:adapter]
+
+      unless adapter do
+        raise ArgumentError, "missing :adapter configuration in " <>
+                             "config #{inspect otp_app}, #{inspect module}"
+      end
+
+      {adapter, config}
+    else
+      {adapter, config} = Keyword.pop!(opts, :adapter)
     end
   end
 end
