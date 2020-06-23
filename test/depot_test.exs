@@ -370,11 +370,9 @@ defmodule DepotTest do
     end
 
     test "reads configuration from :otp_app" do
-      prefix = "ziKK7t5LzV5XiJjYh30KxCLorRXqLwwEnZYJ"
-
       configuration = [
         adapter: Depot.Adapter.Local,
-        prefix: prefix
+        prefix: "ziKK7t5LzV5XiJjYh30KxCLorRXqLwwEnZYJ"
       ]
 
       Application.put_env(:depot_test, DepotTest.AdhocFilesystem, configuration)
@@ -385,7 +383,7 @@ defmodule DepotTest do
 
       {_module, module_config} = DepotTest.AdhocFilesystem.__filesystem__()
 
-      assert module_config.prefix == prefix
+      assert module_config.prefix == "ziKK7t5LzV5XiJjYh30KxCLorRXqLwwEnZYJ"
     end
 
     test "directory traversals are detected and reported", %{filesystem: filesystem} do
