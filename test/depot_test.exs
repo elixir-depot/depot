@@ -369,6 +369,23 @@ defmodule DepotTest do
       {:ok, filesystem: filesystem}
     end
 
+    test "reads configuration from :otp_app" do
+      configuration = [
+        adapter: Depot.Adapter.Local,
+        prefix: "ziKK7t5LzV5XiJjYh30KxCLorRXqLwwEnZYJ"
+      ]
+
+      Application.put_env(:depot_test, DepotTest.AdhocFilesystem, configuration)
+
+      defmodule AdhocFilesystem do
+        use Depot.Filesystem, otp_app: :depot_test
+      end
+
+      {_module, module_config} = DepotTest.AdhocFilesystem.__filesystem__()
+
+      assert module_config.prefix == "ziKK7t5LzV5XiJjYh30KxCLorRXqLwwEnZYJ"
+    end
+
     test "directory traversals are detected and reported", %{filesystem: filesystem} do
       {:error, {:path, :traversal}} = Depot.write(filesystem, "../test.txt", "Hello World")
       {:error, {:path, :traversal}} = Depot.read(filesystem, "../test.txt")
