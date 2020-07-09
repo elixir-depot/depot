@@ -46,6 +46,15 @@ defmodule Depot.Adapter.InMemoryTest do
 
       assert {:ok, "Hello World"} = Depot.Adapter.InMemory.read(config, "test.txt")
     end
+
+    test "stream not implemented", %{test: test} do
+      {_, config} = filesystem = Depot.Adapter.InMemory.configure(name: test)
+
+      start_supervised(filesystem)
+
+      assert {:error, Depot.Adapter.InMemory} =
+               Depot.Adapter.InMemory.read_stream(config, "test.txt", [])
+    end
   end
 
   describe "delete" do

@@ -69,6 +69,11 @@ defmodule Depot.Adapter.InMemory do
   end
 
   @impl Depot.Adapter
+  def read_stream(_config, _path, _opts) do
+    {:error, __MODULE__}
+  end
+
+  @impl Depot.Adapter
   def delete(%Config{} = config, path) do
     Agent.update(Depot.Registry.via(__MODULE__, config.name), fn state ->
       {_, state} = pop_in(state, accessor(path))
