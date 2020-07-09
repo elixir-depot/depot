@@ -19,6 +19,28 @@ defmodule Depot.Adapter.Local do
 
       LocalFileSystem.write("test.txt", "Hello World")
       {:ok, "Hello World"} = LocalFileSystem.read("test.txt")
+
+  ## Usage with Streams
+
+  The following options are available for streams:
+
+    * `:chunk_size` - When reading, the amount to read,
+      by `:line` (default) or by a given number of bytes.
+
+    * `:modes` - A list of modes to use when opening the file
+      for reading. For more information, see the docs for
+      `File.stream!/3`.
+
+  ### Examples
+
+      {:ok, %File.Stream{}} = Depot.read_stream(filesystem, "test.txt")
+
+      # with custom read chunk size
+      {:ok, %File.Stream{line_or_bytes: 1_024, ...}} = Depot.read_stream(filesystem, "test.txt", chunk_size: 1_024)
+
+      # with custom file read modes
+      {:ok, %File.Stream{mode: [{:encoding, :utf8}, :binary], ...}} = Depot.read_stream(filesystem, "test.txt", modes: [encoding: :utf8])
+
   """
 
   defmodule Config do
@@ -55,9 +77,11 @@ defmodule Depot.Adapter.Local do
   end
 
   @impl Depot.Adapter
-  def read_stream(%Config{} = config, path) do
+  def read_stream(%Config{} = config, path, opts) do
     try do
-      {:ok, File.stream!(full_path(config, path))}
+      modes = opts[:modes] || []
+      line_or_bytes = opts[:chunk_size] || :line
+      {:ok, File.stream!(full_path(config, path), modes, line_or_bytes)}
     rescue
       e -> {:error, e}
     end
