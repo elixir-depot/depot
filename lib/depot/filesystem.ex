@@ -4,6 +4,8 @@ defmodule Depot.Filesystem do
   """
   @callback write(path :: Path.t(), contents :: binary, opts :: keyword()) :: :ok | {:error, term}
   @callback read(path :: Path.t(), opts :: keyword()) :: {:ok, binary} | {:error, term}
+  @callback read_stream(path :: Path.t(), opts :: keyword()) ::
+              {:ok, Enumerable.t()} | {:error, term}
   @callback delete(path :: Path.t(), opts :: keyword()) :: :ok | {:error, term}
   @callback move(source :: Path.t(), destination :: Path.t(), opts :: keyword()) ::
               :ok | {:error, term}
@@ -44,7 +46,7 @@ defmodule Depot.Filesystem do
 
       @impl true
       def read_stream(path, opts \\ []),
-          do: Depot.read_stream(@filesystem, path, opts)
+        do: Depot.read_stream(@filesystem, path, opts)
 
       @impl true
       def delete(path, opts \\ []),
