@@ -4,7 +4,7 @@ defmodule Depot.MixProject do
   def project do
     [
       app: :depot,
-      version: "0.2.2",
+      version: "0.3.0",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -23,7 +23,7 @@ defmodule Depot.MixProject do
   defp package() do
     [
       # These are the default files included in the package
-      files: ~w(lib  mix.exs README* LICENSE*),
+      files: ~w(lib  mix.exs README* LICENSE* CHANGELOG*),
       licenses: ["Apache-2.0"],
       links: %{"GitHub" => "https://github.com/elixir-depot/depot"}
     ]

@@ -77,13 +77,14 @@ defmodule Depot.Filesystem do
       adapter = opts[:adapter] || config[:adapter]
 
       unless adapter do
-        raise ArgumentError, "missing :adapter configuration in " <>
-                             "config #{inspect otp_app}, #{inspect module}"
+        raise ArgumentError,
+              "missing :adapter configuration in " <>
+                "config #{inspect(otp_app)}, #{inspect(module)}"
       end
 
       {adapter, config}
     else
-      {adapter, config} = Keyword.pop!(opts, :adapter)
+      Keyword.pop!(opts, :adapter)
     end
   end
 end
