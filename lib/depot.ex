@@ -37,6 +37,45 @@ defmodule Depot do
   end
 
   @doc """
+  Returns a `Stream` for writing to the given `path`.
+
+  ## Options
+
+  The following stream options apply to all adapters:
+
+    * `:chunk_size` - When reading, the amount to read,
+      usually expressed as a number of bytes.
+
+  ## Examples
+
+  > Note: The shape of the returned stream will
+  > necessarily depend on the adapter in use. In the
+  > following examples the [`Local`](`Depot.Adapter.Local`)
+  > adapter is invoked, which returns a `File.Stream`.
+
+  ### Direct filesystem
+
+      filesystem = Depot.Adapter.Local.configure(prefix: "/home/user/storage")
+      {:ok, %File.Stream{}} = Depot.write_stream(filesystem, "test.txt")
+
+  ### Module-based filesystem
+
+      defmodule LocalFileSystem do
+        use Depot.Filesystem,
+          adapter: Depot.Adapter.Local,
+          prefix: "/home/user/storage"
+      end
+
+      {:ok, %File.Stream{}} = LocalFileSystem.write_stream("test.txt")
+
+  """
+  def write_stream({adapter, config}, path, opts \\ []) do
+    with {:ok, path} <- Depot.RelativePath.normalize(path) do
+      adapter.write_stream(config, path, opts)
+    end
+  end
+
+  @doc """
   Read from a filesystem
 
   ## Examples

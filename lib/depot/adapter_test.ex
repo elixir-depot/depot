@@ -17,6 +17,14 @@ defmodule Depot.AdapterTest do
         assert {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
       end
 
+      test "user can stream to a filesystem", %{filesystem: filesystem} do
+        assert {:ok, stream} = Depot.write_stream(filesystem, "test.txt")
+
+        Enum.into(["Hello", " ", "World"], stream)
+
+        assert {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
+      end
+
       test "user can check if files exist on a filesystem", %{filesystem: filesystem} do
         :ok = Depot.write(filesystem, "test.txt", "Hello World")
 

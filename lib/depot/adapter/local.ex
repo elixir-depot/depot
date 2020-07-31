@@ -72,19 +72,26 @@ defmodule Depot.Adapter.Local do
   end
 
   @impl Depot.Adapter
+  def write_stream(%Config{} = config, path, opts) do
+    modes = opts[:modes] || []
+    line_or_bytes = opts[:chunk_size] || :line
+    {:ok, File.stream!(full_path(config, path), modes, line_or_bytes)}
+  rescue
+    e -> {:error, e}
+  end
+
+  @impl Depot.Adapter
   def read(%Config{} = config, path) do
     File.read(full_path(config, path))
   end
 
   @impl Depot.Adapter
   def read_stream(%Config{} = config, path, opts) do
-    try do
-      modes = opts[:modes] || []
-      line_or_bytes = opts[:chunk_size] || :line
-      {:ok, File.stream!(full_path(config, path), modes, line_or_bytes)}
-    rescue
-      e -> {:error, e}
-    end
+    modes = opts[:modes] || []
+    line_or_bytes = opts[:chunk_size] || :line
+    {:ok, File.stream!(full_path(config, path), modes, line_or_bytes)}
+  rescue
+    e -> {:error, e}
   end
 
   @impl Depot.Adapter

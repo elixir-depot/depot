@@ -29,6 +29,30 @@ defmodule Depot.Adapter.LocalTest do
 
       assert {:ok, "Hello World"} = File.read(Path.join(prefix, "folder/test.txt"))
     end
+
+    test "stream options", %{prefix: prefix} do
+      {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
+
+      assert {:ok, %File.Stream{line_or_bytes: :line, modes: [:raw, :read_ahead, :binary]}} =
+               Depot.Adapter.Local.write_stream(config, "test.txt", [])
+
+      assert {:ok, %File.Stream{line_or_bytes: 1_024, modes: [:raw, :read_ahead, :binary]}} =
+               Depot.Adapter.Local.write_stream(config, "test.txt", chunk_size: 1_024)
+
+      assert {:ok, %File.Stream{modes: [{:encoding, :utf8}, :binary]}} =
+               Depot.Adapter.Local.write_stream(config, "test.txt", modes: [encoding: :utf8])
+    end
+
+    test "stream success", %{prefix: prefix} do
+      {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
+
+      assert {:ok, %File.Stream{} = stream} =
+               Depot.Adapter.Local.write_stream(config, "test.txt", [])
+
+      Enum.into(["Hello", " ", "World"], stream)
+
+      assert {:ok, "Hello World"} = File.read(Path.join(prefix, "test.txt"))
+    end
   end
 
   describe "read" do
@@ -61,7 +85,7 @@ defmodule Depot.Adapter.LocalTest do
       assert {:ok, %File.Stream{} = stream} =
                Depot.Adapter.Local.read_stream(config, "test.txt", [])
 
-      assert Enum.reduce(stream, "", &(&2 <> &1)) == "Hello World"
+      assert Enum.into(stream, <<>>) == "Hello World"
     end
   end
 

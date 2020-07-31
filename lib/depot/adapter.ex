@@ -9,6 +9,7 @@ defmodule Depot.Adapter do
   @callback starts_processes() :: boolean
   @callback configure(keyword) :: {module(), config}
   @callback write(config, path, contents :: iodata()) :: :ok | {:error, term}
+  @callback write_stream(config, path, stream_opts) :: {:ok, Collectable.t()} | {:error, term}
   @callback read(config, path) :: {:ok, binary} | {:error, term}
   @callback read_stream(config, path, stream_opts) :: {:ok, Enumerable.t()} | {:error, term}
   @callback delete(config, path) :: :ok | {:error, term}

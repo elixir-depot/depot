@@ -59,6 +59,30 @@ defmodule Depot.Adapter.InMemory do
       def member?(_, _), do: {:error, __MODULE__}
     end
 
+    defimpl Collectable do
+      def into(%{config: config, path: path} = stream) do
+        original =
+          case Depot.Adapter.InMemory.read(config, path) do
+            {:ok, contents} -> contents
+            _ -> ""
+          end
+
+        fun = fn
+          list, {:cont, x} ->
+            [x | list]
+
+          list, :done ->
+            contents = original <> IO.iodata_to_binary(:lists.reverse(list))
+            Depot.Adapter.InMemory.write(config, path, contents)
+            stream
+
+          _, :halt ->
+            :ok
+        end
+
+        {[], fun}
+      end
+    end
   end
 
   use Agent
@@ -95,6 +119,16 @@ defmodule Depot.Adapter.InMemory do
     Agent.update(Depot.Registry.via(__MODULE__, config.name), fn state ->
       put_in(state, accessor(path, %{}), IO.iodata_to_binary(contents))
     end)
+  end
+
+  @impl Depot.Adapter
+  def write_stream(config, path, opts) do
+    {:ok,
+     %AgentStream{
+       config: config,
+       path: path,
+       chunk_size: Keyword.get(opts, :chunk_size, 1024)
+     }}
   end
 
   @impl Depot.Adapter
