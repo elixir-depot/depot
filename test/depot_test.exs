@@ -400,4 +400,62 @@ defmodule DepotTest do
       {:error, {:path, :absolute}} = Depot.list_contents(filesystem, "/../test")
     end
   end
+
+  describe "copying between different filesystems" do
+    setup do
+      {:ok, prefix_a} = Briefly.create(directory: true)
+      {:ok, prefix_b} = Briefly.create(directory: true)
+      {:ok, prefixes: [prefix_a, prefix_b]}
+    end
+
+    test "direct copy - same adapter", %{prefixes: [prefix_a, prefix_b]} do
+      filesystem_a = Depot.Adapter.Local.configure(prefix: prefix_a)
+      filesystem_b = Depot.Adapter.Local.configure(prefix: prefix_b)
+
+      :ok = Depot.write(filesystem_a, "test.txt", "Hello World")
+
+      assert :ok =
+               Depot.copy_between_filesystem(
+                 {filesystem_a, "test.txt"},
+                 {filesystem_b, "test.txt"}
+               )
+
+      assert {:ok, :exists} = Depot.file_exists(filesystem_b, "test.txt")
+    end
+
+    test "indirect copy - same adapter" do
+      filesystem_a = Depot.Adapter.InMemory.configure(name: InMemoryTest.A)
+      filesystem_b = Depot.Adapter.InMemory.configure(name: InMemoryTest.B)
+
+      filesystem_a |> Supervisor.child_spec(id: :a) |> start_supervised()
+      filesystem_b |> Supervisor.child_spec(id: :b) |> start_supervised()
+
+      :ok = Depot.write(filesystem_a, "test.txt", "Hello World")
+
+      assert :ok =
+               Depot.copy_between_filesystem(
+                 {filesystem_a, "test.txt"},
+                 {filesystem_b, "test.txt"}
+               )
+
+      assert {:ok, :exists} = Depot.file_exists(filesystem_b, "test.txt")
+    end
+
+    test "different adapter", %{prefixes: [prefix_a | _]} do
+      filesystem_a = Depot.Adapter.Local.configure(prefix: prefix_a)
+      filesystem_b = Depot.Adapter.InMemory.configure(name: InMemoryTest.B)
+
+      start_supervised(filesystem_b)
+
+      :ok = Depot.write(filesystem_a, "test.txt", "Hello World")
+
+      assert :ok =
+               Depot.copy_between_filesystem(
+                 {filesystem_a, "test.txt"},
+                 {filesystem_b, "test.txt"}
+               )
+
+      assert {:ok, :exists} = Depot.file_exists(filesystem_b, "test.txt")
+    end
+  end
 end

@@ -110,6 +110,11 @@ defmodule Depot.Adapter.InMemory do
   end
 
   @impl Depot.Adapter
+  def copy(%Config{} = _source_config, _source, %Config{} = _destination_config, _destination) do
+    {:error, :unsupported}
+  end
+
+  @impl Depot.Adapter
   def file_exists(%Config{} = config, path) do
     Agent.get(Depot.Registry.via(__MODULE__, config.name), fn state ->
       case get_in(state, accessor(path)) do

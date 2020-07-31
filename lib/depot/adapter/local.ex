@@ -113,6 +113,16 @@ defmodule Depot.Adapter.Local do
   end
 
   @impl Depot.Adapter
+  def copy(%Config{} = source_config, source, %Config{} = destination_config, destination) do
+    source = full_path(source_config, source)
+    destination = full_path(destination_config, destination)
+
+    with :ok <- destination |> Path.dirname() |> File.mkdir_p() do
+      File.cp(source, destination)
+    end
+  end
+
+  @impl Depot.Adapter
   def file_exists(%Config{} = config, path) do
     case File.exists?(full_path(config, path)) do
       true -> {:ok, :exists}

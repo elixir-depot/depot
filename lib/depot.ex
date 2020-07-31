@@ -245,4 +245,45 @@ defmodule Depot do
       adapter.list_contents(config, path)
     end
   end
+
+  @spec copy_between_filesystem(
+          source :: {filesystem, Path.t()},
+          destination :: {filesystem, Path.t()},
+          keyword()
+        ) :: :ok | {:error, term}
+  def copy_between_filesystem(source, destination, opts \\ [])
+
+  # Same adapter, same config -> just do a plain copy
+  def copy_between_filesystem({filesystem, source}, {filesystem, destination}, opts) do
+    copy(filesystem, source, destination, opts)
+  end
+
+  # Same adapter -> try direct copy if supported
+  def copy_between_filesystem(
+        {{adapter, config_source}, path_source} = source,
+        {{adapter, config_destination}, path_destination} = destination,
+        opts
+      ) do
+    with :ok <- adapter.copy(config_source, path_source, config_destination, path_destination) do
+      :ok
+    else
+      {:error, :unsupported} -> copy_via_local_memory(source, destination, opts)
+      error -> error
+    end
+  end
+
+  # different adapter
+  def copy_between_filesystem(source, destination, opts) do
+    copy_via_local_memory(source, destination, opts)
+  end
+
+  defp copy_via_local_memory(
+         {source_filesystem, source_path},
+         {destination_filesystem, destination_path},
+         _
+       ) do
+    with {:ok, contents} <- Depot.read(source_filesystem, source_path) do
+      Depot.write(destination_filesystem, destination_path, contents)
+    end
+  end
 end
