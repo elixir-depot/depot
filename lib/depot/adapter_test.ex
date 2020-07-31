@@ -17,12 +17,16 @@ defmodule Depot.AdapterTest do
         assert {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
       end
 
-      test "user can stream to a filesystem", %{filesystem: filesystem} do
-        assert {:ok, stream} = Depot.write_stream(filesystem, "test.txt")
+      test "user can stream to a filesystem", %{filesystem: {adapter, _} = filesystem} do
+        case Depot.write_stream(filesystem, "test.txt") do
+          {:ok, stream} ->
+            Enum.into(["Hello", " ", "World"], stream)
 
-        Enum.into(["Hello", " ", "World"], stream)
+            assert {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
 
-        assert {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
+          {:error, ^adapter} ->
+            :ok
+        end
       end
 
       test "user can check if files exist on a filesystem", %{filesystem: filesystem} do
@@ -38,20 +42,28 @@ defmodule Depot.AdapterTest do
         assert {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
       end
 
-      test "user can stream from filesystem", %{filesystem: filesystem} do
+      test "user can stream from filesystem", %{filesystem: {adapter, _} = filesystem} do
         :ok = Depot.write(filesystem, "test.txt", "Hello World")
 
-        assert {:ok, stream} = Depot.read_stream(filesystem, "test.txt")
+        case Depot.read_stream(filesystem, "test.txt") do
+          {:ok, stream} ->
+            assert Enum.into(stream, <<>>) == "Hello World"
 
-        assert Enum.into(stream, <<>>) == "Hello World"
+          {:error, ^adapter} ->
+            :ok
+        end
       end
 
-      test "user can stream in a certain chunk size", %{filesystem: filesystem} do
+      test "user can stream in a certain chunk size", %{filesystem: {adapter, _} = filesystem} do
         :ok = Depot.write(filesystem, "test.txt", "Hello World")
 
-        assert {:ok, stream} = Depot.read_stream(filesystem, "test.txt", chunk_size: 2)
+        case Depot.read_stream(filesystem, "test.txt", chunk_size: 2) do
+          {:ok, stream} ->
+            assert ["He" | _] = Enum.into(stream, [])
 
-        assert ["He" | _] = Enum.into(stream, [])
+          {:error, ^adapter} ->
+            :ok
+        end
       end
 
       test "user can try to read a non-existing file from filesystem", %{filesystem: filesystem} do
