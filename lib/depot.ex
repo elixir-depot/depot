@@ -317,12 +317,48 @@ defmodule Depot do
   end
 
   defp copy_via_local_memory(
-         {source_filesystem, source_path},
-         {destination_filesystem, destination_path},
-         _
+         {{source_adapter, _} = source_filesystem, source_path},
+         {{destination_adapter, _} = destination_filesystem, destination_path},
+         opts
        ) do
-    with {:ok, contents} <- Depot.read(source_filesystem, source_path) do
-      Depot.write(destination_filesystem, destination_path, contents)
+    case {Depot.read_stream(source_filesystem, source_path, opts),
+          Depot.write_stream(destination_filesystem, destination_path, opts)} do
+      # A and B support streaming -> Stream data
+      {{:ok, read_stream}, {:ok, write_stream}} ->
+        read_stream
+        |> Stream.into(write_stream)
+        |> Stream.run()
+
+      # Only A support streaming -> Stream to memory and write when done
+      {{:ok, read_stream}, {:error, ^destination_adapter}} ->
+        Depot.write(destination_filesystem, destination_path, Enum.into(read_stream, []))
+
+      # Only B support streaming -> Load into memory and stream to B
+      {{:error, ^source_adapter}, {:ok, write_stream}} ->
+        with {:ok, contents} <- Depot.read(source_filesystem, source_path) do
+          contents
+          |> chunk(Keyword.get(opts, :chunk_size, 5 * 1024))
+          |> Enum.into(write_stream)
+        end
+
+      # Neither support streaming
+      {{:error, ^source_adapter}, {:error, ^destination_adapter}} ->
+        with {:ok, contents} <- Depot.read(source_filesystem, source_path) do
+          Depot.write(destination_filesystem, destination_path, contents)
+        end
     end
+  rescue
+    e -> {:error, e}
   end
+
+  @doc false
+  # Also used by the InMemory adapter and therefore not private
+  def chunk("", _size), do: []
+
+  def chunk(binary, size) when byte_size(binary) >= size do
+    {chunk, rest} = :erlang.split_binary(binary, size)
+    [chunk | chunk(rest, size)]
+  end
+
+  def chunk(binary, _size), do: [binary]
 end

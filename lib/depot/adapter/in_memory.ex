@@ -26,22 +26,12 @@ defmodule Depot.Adapter.InMemory do
     @enforce_keys [:config, :path]
     defstruct config: nil, path: nil, chunk_size: 1024
 
-    @doc false
-    def chunk("", _size), do: []
-
-    def chunk(binary, size) when byte_size(binary) >= size do
-      {chunk, rest} = :erlang.split_binary(binary, size)
-      [chunk | chunk(rest, size)]
-    end
-
-    def chunk(binary, _size), do: [binary]
-
     defimpl Enumerable do
       def reduce(%{config: config, path: path, chunk_size: chunk_size}, a, b) do
         case Depot.Adapter.InMemory.read(config, path) do
           {:ok, contents} ->
             contents
-            |> Depot.Adapter.InMemory.AgentStream.chunk(chunk_size)
+            |> Depot.chunk(chunk_size)
             |> reduce(a, b)
 
           _ ->
