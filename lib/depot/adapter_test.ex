@@ -1,7 +1,7 @@
 defmodule Depot.AdapterTest do
-  defmacro assert_in_list(list, match) do
+  defmacro in_list(list, match) do
     quote do
-      assert Enum.any?(unquote(list), &match?(unquote(match), &1))
+      Enum.any?(unquote(list), &match?(unquote(match), &1))
     end
   end
 
@@ -108,12 +108,15 @@ defmodule Depot.AdapterTest do
       test "user can list files", %{filesystem: filesystem} do
         :ok = Depot.write(filesystem, "test.txt", "Hello World")
         :ok = Depot.write(filesystem, "test-1.txt", "Hello World")
+        :ok = Depot.write(filesystem, "folder/test-1.txt", "Hello World")
 
         {:ok, list} = Depot.list_contents(filesystem, ".")
 
-        assert length(list) == 2
-        Depot.AdapterTest.assert_in_list(list, %Depot.Stat.File{name: "test.txt"})
-        Depot.AdapterTest.assert_in_list(list, %Depot.Stat.File{name: "test-1.txt"})
+        assert length(list) == 3
+        assert in_list(list, %Depot.Stat.Dir{name: "folder"})
+        assert in_list(list, %Depot.Stat.File{name: "test.txt"})
+        assert in_list(list, %Depot.Stat.File{name: "test-1.txt"})
+        refute in_list(list, %Depot.Stat.File{name: "folder/test-1.txt"})
       end
     end
   end
@@ -123,6 +126,7 @@ defmodule Depot.AdapterTest do
       describe "common adapter tests" do
         setup unquote(block)
 
+        import Depot.AdapterTest, only: [in_list: 2]
         unquote(tests())
       end
     end
@@ -133,6 +137,7 @@ defmodule Depot.AdapterTest do
       describe "common adapter tests" do
         setup unquote(context), unquote(block)
 
+        import Depot.AdapterTest, only: [in_list: 2]
         unquote(tests())
       end
     end
