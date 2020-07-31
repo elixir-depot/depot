@@ -30,6 +30,22 @@ defmodule Depot.AdapterTest do
         assert {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
       end
 
+      test "user can stream from filesystem", %{filesystem: filesystem} do
+        :ok = Depot.write(filesystem, "test.txt", "Hello World")
+
+        assert {:ok, stream} = Depot.read_stream(filesystem, "test.txt")
+
+        assert Enum.into(stream, <<>>) == "Hello World"
+      end
+
+      test "user can stream in a certain chunk size", %{filesystem: filesystem} do
+        :ok = Depot.write(filesystem, "test.txt", "Hello World")
+
+        assert {:ok, stream} = Depot.read_stream(filesystem, "test.txt", chunk_size: 2)
+
+        assert ["He" | _] = Enum.into(stream, [])
+      end
+
       test "user can try to read a non-existing file from filesystem", %{filesystem: filesystem} do
         assert {:error, :enoent} = Depot.read(filesystem, "test.txt")
       end

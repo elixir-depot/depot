@@ -22,6 +22,45 @@ defmodule Depot.Adapter.InMemory do
       {:ok, "Hello World"} = InMemoryFileSystem.read("test.txt")
   """
 
+  defmodule AgentStream do
+    @enforce_keys [:config, :path]
+    defstruct config: nil, path: nil, chunk_size: 1024
+
+    @doc false
+    def chunk("", _size), do: []
+
+    def chunk(binary, size) when byte_size(binary) >= size do
+      {chunk, rest} = :erlang.split_binary(binary, size)
+      [chunk | chunk(rest, size)]
+    end
+
+    def chunk(binary, _size), do: [binary]
+
+    defimpl Enumerable do
+      def reduce(%{config: config, path: path, chunk_size: chunk_size}, a, b) do
+        case Depot.Adapter.InMemory.read(config, path) do
+          {:ok, contents} ->
+            contents
+            |> Depot.Adapter.InMemory.AgentStream.chunk(chunk_size)
+            |> reduce(a, b)
+
+          _ ->
+            {:halted, []}
+        end
+      end
+
+      def reduce(_list, {:halt, acc}, _fun), do: {:halted, acc}
+      def reduce(list, {:suspend, acc}, fun), do: {:suspended, acc, &reduce(list, &1, fun)}
+      def reduce([], {:cont, acc}, _fun), do: {:done, acc}
+      def reduce([head | tail], {:cont, acc}, fun), do: reduce(tail, fun.(head, acc), fun)
+
+      def count(_), do: {:error, __MODULE__}
+      def slice(_), do: {:error, __MODULE__}
+      def member?(_, _), do: {:error, __MODULE__}
+    end
+
+  end
+
   use Agent
 
   defmodule Config do
@@ -69,8 +108,13 @@ defmodule Depot.Adapter.InMemory do
   end
 
   @impl Depot.Adapter
-  def read_stream(_config, _path, _opts) do
-    {:error, __MODULE__}
+  def read_stream(config, path, opts) do
+    {:ok,
+     %AgentStream{
+       config: config,
+       path: path,
+       chunk_size: Keyword.get(opts, :chunk_size, 1024)
+     }}
   end
 
   @impl Depot.Adapter

@@ -47,13 +47,17 @@ defmodule Depot.Adapter.InMemoryTest do
       assert {:ok, "Hello World"} = Depot.Adapter.InMemory.read(config, "test.txt")
     end
 
-    test "stream not implemented", %{test: test} do
+    test "stream success", %{test: test} do
       {_, config} = filesystem = Depot.Adapter.InMemory.configure(name: test)
 
       start_supervised(filesystem)
 
-      assert {:error, Depot.Adapter.InMemory} =
+      :ok = Agent.update(via(test), fn _state -> %{"/" => %{"test.txt" => "Hello World"}} end)
+
+      assert {:ok, %Depot.Adapter.InMemory.AgentStream{} = stream} =
                Depot.Adapter.InMemory.read_stream(config, "test.txt", [])
+
+      assert Enum.into(stream, <<>>) == "Hello World"
     end
   end
 
