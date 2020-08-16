@@ -105,18 +105,46 @@ defmodule Depot.AdapterTest do
         assert {:error, :enoent} = Depot.copy(filesystem, "test.txt", "not-test.txt")
       end
 
-      test "user can list files", %{filesystem: filesystem} do
+      test "user can list files and folders", %{filesystem: filesystem} do
+        :ok = Depot.create_directory(filesystem, "test/")
         :ok = Depot.write(filesystem, "test.txt", "Hello World")
         :ok = Depot.write(filesystem, "test-1.txt", "Hello World")
         :ok = Depot.write(filesystem, "folder/test-1.txt", "Hello World")
 
         {:ok, list} = Depot.list_contents(filesystem, ".")
 
-        assert length(list) == 3
+        assert length(list) == 4
+        assert in_list(list, %Depot.Stat.Dir{name: "test"})
         assert in_list(list, %Depot.Stat.Dir{name: "folder"})
         assert in_list(list, %Depot.Stat.File{name: "test.txt"})
         assert in_list(list, %Depot.Stat.File{name: "test-1.txt"})
+
         refute in_list(list, %Depot.Stat.File{name: "folder/test-1.txt"})
+      end
+
+      test "user can create directories", %{filesystem: filesystem} do
+        assert :ok = Depot.create_directory(filesystem, "test/")
+        assert :ok = Depot.create_directory(filesystem, "test/nested/folder/")
+      end
+
+      test "user can delete directories", %{filesystem: filesystem} do
+        :ok = Depot.create_directory(filesystem, "test/")
+        assert :ok = Depot.delete_directory(filesystem, "test/")
+      end
+
+      test "non empty directories are not deleted by default", %{filesystem: filesystem} do
+        :ok = Depot.write(filesystem, "test/test.txt", "Hello World")
+        assert {:error, _} = Depot.delete_directory(filesystem, "test/")
+      end
+
+      test "non empty directories are deleted with the recursive flag set", %{
+        filesystem: filesystem
+      } do
+        :ok = Depot.write(filesystem, "test/test.txt", "Hello World")
+        assert :ok = Depot.delete_directory(filesystem, "test/", recursive: true)
+
+        :ok = Depot.create_directory(filesystem, "test/nested/folder/")
+        assert :ok = Depot.delete_directory(filesystem, "test/", recursive: true)
       end
     end
   end

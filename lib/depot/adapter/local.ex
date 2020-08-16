@@ -156,6 +156,23 @@ defmodule Depot.Adapter.Local do
     end
   end
 
+  @impl Depot.Adapter
+  def create_directory(%Config{} = config, path) do
+    path = full_path(config, path)
+    File.mkdir_p(path)
+  end
+
+  @impl Depot.Adapter
+  def delete_directory(%Config{} = config, path, opts) do
+    path = full_path(config, path)
+
+    if Keyword.get(opts, :recursive, false) do
+      with {:ok, _} <- File.rm_rf(path), do: :ok
+    else
+      File.rmdir(path)
+    end
+  end
+
   defp full_path(config, path) do
     Depot.RelativePath.join_prefix(config.prefix, path)
   end

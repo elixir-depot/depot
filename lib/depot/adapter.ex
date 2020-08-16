@@ -4,6 +4,7 @@ defmodule Depot.Adapter do
   """
   @type path :: Path.t()
   @type stream_opts :: keyword
+  @type directory_delete_opts :: keyword
   @opaque config :: struct
 
   @callback starts_processes() :: boolean
@@ -24,4 +25,6 @@ defmodule Depot.Adapter do
   @callback file_exists(config, path) :: {:ok, :exists | :missing} | {:error, term}
   @callback list_contents(config, path) ::
               {:ok, [%Depot.Stat.Dir{} | %Depot.Stat.File{}]} | {:error, term}
+  @callback create_directory(config, path) :: :ok | {:error, term}
+  @callback delete_directory(config, path, directory_delete_opts) :: :ok | {:error, term}
 end

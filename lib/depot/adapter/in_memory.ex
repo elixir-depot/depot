@@ -224,6 +224,32 @@ defmodule Depot.Adapter.InMemory do
     {:ok, contents}
   end
 
+  @impl Depot.Adapter
+  def create_directory(%Config{} = config, path) do
+    Agent.update(Depot.Registry.via(__MODULE__, config.name), fn state ->
+      put_in(state, accessor(path, %{}), %{})
+    end)
+  end
+
+  @impl Depot.Adapter
+  def delete_directory(%Config{} = config, path, opts) do
+    recursive? = Keyword.get(opts, :recursive, false)
+
+    Agent.get_and_update(Depot.Registry.via(__MODULE__, config.name), fn state ->
+      case {recursive?, get_in(state, accessor(path))} do
+        {_, nil} ->
+          {:ok, state}
+
+        {recursive?, map} when is_map(map) and (map_size(map) == 0 or recursive?) ->
+          {_, state} = pop_in(state, accessor(path))
+          {:ok, state}
+
+        _ ->
+          {{:error, :eexist}, state}
+      end
+    end)
+  end
+
   defp accessor(path, default \\ nil) when is_binary(path) do
     path
     |> Path.absname("/")

@@ -285,6 +285,64 @@ defmodule Depot do
     end
   end
 
+  @doc """
+  Create a directory
+
+  ## Examples
+
+  ### Direct filesystem
+
+      filesystem = Depot.Adapter.Local.configure(prefix: "/home/user/storage")
+      :ok = Depot.create_directory(filesystem, "test/")
+
+  ### Module-based filesystem
+
+      defmodule LocalFileSystem do
+        use Depot.Filesystem,
+          adapter: Depot.Adapter.Local,
+          prefix: "/home/user/storage"
+      end
+
+      LocalFileSystem.create_directory("test/")
+
+  """
+  @spec create_directory(filesystem, Path.t(), keyword()) :: :ok | {:error, term}
+  def create_directory({adapter, config}, path, _opts \\ []) do
+    with {:ok, path} <- Depot.RelativePath.normalize(path),
+         {:ok, path} <- Depot.RelativePath.assert_directory(path) do
+      adapter.create_directory(config, path)
+    end
+  end
+
+  @doc """
+  Delete a directory
+
+  ## Examples
+
+  ### Direct filesystem
+
+      filesystem = Depot.Adapter.Local.configure(prefix: "/home/user/storage")
+      :ok = Depot.delete_directory(filesystem, "test/")
+
+  ### Module-based filesystem
+
+      defmodule LocalFileSystem do
+        use Depot.Filesystem,
+          adapter: Depot.Adapter.Local,
+          prefix: "/home/user/storage"
+      end
+
+      LocalFileSystem.delete_directory("test/")
+
+  """
+  @spec delete_directory(filesystem, Path.t(), keyword()) :: :ok | {:error, term}
+  def delete_directory({adapter, config}, path, opts \\ []) do
+    with {:ok, path} <- Depot.RelativePath.normalize(path),
+         {:ok, path} <- Depot.RelativePath.assert_directory(path) do
+      adapter.delete_directory(config, path, opts)
+    end
+  end
+
   @spec copy_between_filesystem(
           source :: {filesystem, Path.t()},
           destination :: {filesystem, Path.t()},

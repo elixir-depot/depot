@@ -63,4 +63,12 @@ defmodule Depot.RelativePath do
   def strip_prefix(prefix, path) do
     Path.relative_to(path, prefix)
   end
+
+  def assert_directory(path) do
+    if String.ends_with?(path, "/") do
+      {:ok, path}
+    else
+      {:error, :enotdir}
+    end
+  end
 end
