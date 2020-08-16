@@ -315,7 +315,11 @@ defmodule Depot do
   end
 
   @doc """
-  Delete a directory
+  Delete a directory.
+
+  ## Options
+
+    * `:recursive` - Recursively delete contents. Defaults to `false`.
 
   ## Examples
 
@@ -341,6 +345,34 @@ defmodule Depot do
          {:ok, path} <- Depot.RelativePath.assert_directory(path) do
       adapter.delete_directory(config, path, opts)
     end
+  end
+
+  @doc """
+  Clear the filesystem.
+
+  This is always recursive.
+
+  ## Examples
+
+  ### Direct filesystem
+
+      filesystem = Depot.Adapter.Local.configure(prefix: "/home/user/storage")
+      :ok = Depot.clear(filesystem)
+
+  ### Module-based filesystem
+
+      defmodule LocalFileSystem do
+        use Depot.Filesystem,
+          adapter: Depot.Adapter.Local,
+          prefix: "/home/user/storage"
+      end
+
+      LocalFileSystem.clear()
+
+  """
+  @spec clear(filesystem, keyword()) :: :ok | {:error, term}
+  def clear({adapter, config}, _opts \\ []) do
+    adapter.clear(config)
   end
 
   @spec copy_between_filesystem(

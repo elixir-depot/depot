@@ -173,6 +173,24 @@ defmodule Depot.Adapter.Local do
     end
   end
 
+  @impl Depot.Adapter
+  def clear(%Config{} = config) do
+    with {:ok, contents} <- list_contents(%Config{} = config, ".") do
+      Enum.reduce_while(contents, :ok, fn dir_or_file, :ok ->
+        case clear_dir_or_file(config, dir_or_file) do
+          :ok -> {:cont, :ok}
+          err -> {:halt, err}
+        end
+      end)
+    end
+  end
+
+  defp clear_dir_or_file(config, %Depot.Stat.Dir{name: dir}),
+    do: delete_directory(config, dir, recursive: true)
+
+  defp clear_dir_or_file(config, %Depot.Stat.File{name: name}),
+    do: delete(config, name)
+
   defp full_path(config, path) do
     Depot.RelativePath.join_prefix(config.prefix, path)
   end

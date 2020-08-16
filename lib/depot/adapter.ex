@@ -27,4 +27,5 @@ defmodule Depot.Adapter do
               {:ok, [%Depot.Stat.Dir{} | %Depot.Stat.File{}]} | {:error, term}
   @callback create_directory(config, path) :: :ok | {:error, term}
   @callback delete_directory(config, path, directory_delete_opts) :: :ok | {:error, term}
+  @callback clear(config) :: :ok | {:error, term}
 end

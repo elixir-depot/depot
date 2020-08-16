@@ -250,6 +250,11 @@ defmodule Depot.Adapter.InMemory do
     end)
   end
 
+  @impl Depot.Adapter
+  def clear(%Config{} = config) do
+    Agent.update(Depot.Registry.via(__MODULE__, config.name), fn _ -> %{} end)
+  end
+
   defp accessor(path, default \\ nil) when is_binary(path) do
     path
     |> Path.absname("/")

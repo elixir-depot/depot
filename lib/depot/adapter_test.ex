@@ -146,6 +146,26 @@ defmodule Depot.AdapterTest do
         :ok = Depot.create_directory(filesystem, "test/nested/folder/")
         assert :ok = Depot.delete_directory(filesystem, "test/", recursive: true)
       end
+
+      test "files in deleted directories are no longer available", %{filesystem: filesystem} do
+        :ok = Depot.write(filesystem, "test/test.txt", "Hello World")
+        assert :ok = Depot.delete_directory(filesystem, "test/", recursive: true)
+        assert {:ok, :missing} = Depot.file_exists(filesystem, "not-test.txt")
+      end
+
+      test "non filesystem can be cleared", %{
+        filesystem: filesystem
+      } do
+        :ok = Depot.write(filesystem, "test.txt", "Hello World")
+        :ok = Depot.write(filesystem, "test/test.txt", "Hello World")
+        :ok = Depot.create_directory(filesystem, "test/nested/folder/")
+
+        assert :ok = Depot.clear(filesystem)
+
+        assert {:ok, :missing} = Depot.file_exists(filesystem, "test.txt")
+        assert {:ok, :missing} = Depot.file_exists(filesystem, "test/test.txt")
+        assert {:ok, :missing} = Depot.file_exists(filesystem, "test/")
+      end
     end
   end
 
