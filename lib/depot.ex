@@ -375,6 +375,41 @@ defmodule Depot do
     adapter.clear(config)
   end
 
+  @doc """
+  Copy a file from one filesystem to the other
+
+  This can either be done natively if the same adapter is used for both filesystems
+  or by streaming/read-write cycle the file from the source to the local system
+  and back to the destination.
+
+  ## Examples
+
+  ### Direct filesystem
+
+      filesystem_source = Depot.Adapter.Local.configure(prefix: "/home/user/storage")
+      filesystem_destination = Depot.Adapter.Local.configure(prefix: "/home/user/storage2")
+      :ok = Depot.copy_between_filesystem({filesystem_source, "test.txt"}, {filesystem_destination, "copy.txt"})
+
+  ### Module-based filesystem
+
+      defmodule LocalSourceFileSystem do
+        use Depot.Filesystem,
+          adapter: Depot.Adapter.Local,
+          prefix: "/home/user/storage"
+      end
+
+      defmodule LocalDestinationFileSystem do
+        use Depot.Filesystem,
+          adapter: Depot.Adapter.Local,
+          prefix: "/home/user/storage2"
+      end
+
+      :ok = Depot.copy_between_filesystem(
+        {LocalSourceFileSystem.__filesystem__(), "test.txt"},
+        {LocalDestinationFileSystem.__filesystem__(), "copy.txt"}
+      )
+
+  """
   @spec copy_between_filesystem(
           source :: {filesystem, Path.t()},
           destination :: {filesystem, Path.t()},
