@@ -53,11 +53,8 @@ defmodule Depot.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:ex_doc, "~> 0.21", only: :dev, runtime: false},
-      {
-        :briefly,
-        git: "https://github.com/CargoSense/briefly", ref: "06ac1a6", only: :test
-      }
+      {:ex_doc, "~> 0.24", only: :dev, runtime: false},
+      {:briefly, "~> 0.3", only: :test}
     ]
   end
 end
