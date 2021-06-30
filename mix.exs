@@ -54,7 +54,10 @@ defmodule Depot.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.24", only: :dev, runtime: false},
-      {:briefly, "~> 0.3", only: :test}
+      {
+        :briefly,
+        git: "https://github.com/CargoSense/briefly", ref: "06ac1a6", only: :test
+      }
     ]
   end
 end
