@@ -5,7 +5,7 @@ defmodule Depot.Adapter do
   @type path :: Path.t()
   @type stream_opts :: keyword
   @type directory_delete_opts :: keyword
-  @opaque config :: struct
+  @type config :: struct
 
   @callback starts_processes() :: boolean
   @callback configure(keyword) :: {module(), config}
