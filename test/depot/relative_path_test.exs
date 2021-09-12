@@ -20,6 +20,7 @@ defmodule Depot.RelativePathTest do
 
   test "join_prefix" do
     assert "/path/to/dir" = RelativePath.join_prefix("/", "path/to/dir")
+    assert "/path/to/dir/" = RelativePath.join_prefix("/", "path/to/dir/")
     assert "/prefix/path/to/dir" = RelativePath.join_prefix("/prefix", "path/to/dir")
     assert "/prefix/path/to/dir" = RelativePath.join_prefix("/prefix/", "path/to/dir")
     assert "C:/path/to/dir" = RelativePath.join_prefix("C:/", "path/to/dir")

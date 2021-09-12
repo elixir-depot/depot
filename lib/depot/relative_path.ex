@@ -56,7 +56,12 @@ defmodule Depot.RelativePath do
 
   @spec join_prefix(Path.t(), t) :: Path.t()
   def join_prefix(prefix, path) do
-    Path.join(prefix, path)
+    join = Path.join(prefix, path)
+
+    case String.last(path) do
+      "/" -> join <> "/"
+      _ -> join
+    end
   end
 
   @spec strip_prefix(Path.t(), t) :: Path.t()
