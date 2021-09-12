@@ -169,17 +169,25 @@ defmodule Depot.Adapter.Local do
 
   @impl Depot.Adapter
   def list_contents(%Config{} = config, path) do
-    path = full_path(config, path)
+    full_path = full_path(config, path)
 
-    with {:ok, files} <- File.ls(path) do
+    with {:ok, files} <- File.ls(full_path) do
       contents =
         for file <- files,
-            {:ok, stat} = File.stat(Path.join(path, file), time: :posix),
+            {:ok, stat} = File.stat(Path.join(full_path, file), time: :posix),
             stat.type in [:directory, :regular] do
-          case stat.type do
-            :directory -> %Depot.Stat.Dir{name: file, size: stat.size, mtime: stat.mtime}
-            :regular -> %Depot.Stat.File{name: file, size: stat.size, mtime: stat.mtime}
-          end
+          struct =
+            case stat.type do
+              :directory -> Depot.Stat.Dir
+              :regular -> Depot.Stat.File
+            end
+
+          struct!(struct,
+            name: file,
+            size: stat.size,
+            mtime: stat.mtime,
+            visibility: visibility_for_mode(config, stat.type, stat.mode)
+          )
         end
 
       {:ok, contents}
@@ -234,15 +242,16 @@ defmodule Depot.Adapter.Local do
     path = full_path(config, path)
 
     with {:ok, %{mode: mode, type: type}} <- File.stat(path) do
-      mode = mode &&& 0o777
+      {:ok, visibility_for_mode(config, type, mode)}
+    end
+  end
 
-      visibility =
-        case type do
-          :directory -> config.converter.from_directory(config.visibility, mode)
-          _ -> config.converter.from_file(config.visibility, mode)
-        end
+  defp visibility_for_mode(config, type, mode) do
+    mode = mode &&& 0o777
 
-      {:ok, visibility}
+    case type do
+      :directory -> config.converter.from_directory(config.visibility, mode)
+      _ -> config.converter.from_file(config.visibility, mode)
     end
   end
 

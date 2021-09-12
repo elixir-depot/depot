@@ -123,6 +123,22 @@ defmodule Depot.AdapterTest do
         assert length(list) == 4
       end
 
+      test "directory listings include visibility", %{filesystem: filesystem} do
+        :ok = Depot.write(filesystem, "visible.txt", "Hello World", visibility: :public)
+        :ok = Depot.write(filesystem, "invisible.txt", "Hello World", visibility: :private)
+        :ok = Depot.create_directory(filesystem, "visible-dir/", directory_visibility: :public)
+        :ok = Depot.create_directory(filesystem, "invisible-dir/", directory_visibility: :private)
+
+        {:ok, list} = Depot.list_contents(filesystem, ".")
+
+        assert in_list(list, %Depot.Stat.Dir{name: "visible-dir", visibility: :public})
+        assert in_list(list, %Depot.Stat.Dir{name: "invisible-dir", visibility: :private})
+        assert in_list(list, %Depot.Stat.File{name: "visible.txt", visibility: :public})
+        assert in_list(list, %Depot.Stat.File{name: "invisible.txt", visibility: :private})
+
+        assert length(list) == 4
+      end
+
       test "user can create directories", %{filesystem: filesystem} do
         assert :ok = Depot.create_directory(filesystem, "test/")
         assert :ok = Depot.create_directory(filesystem, "test/nested/folder/")

@@ -227,22 +227,14 @@ defmodule Depot.Adapter.InMemory do
             _ -> %{}
           end
 
-        for {path, x} <- paths do
-          case x do
-            {%{}, _meta} ->
-              %Depot.Stat.Dir{
-                name: path,
-                size: 0,
-                mtime: 0
-              }
+        for {path, {content, meta}} <- paths do
+          struct =
+            case content do
+              %{} -> %Depot.Stat.Dir{size: 0}
+              bin when is_binary(bin) -> %Depot.Stat.File{size: byte_size(bin)}
+            end
 
-            {bin, _meta} when is_binary(bin) ->
-              %Depot.Stat.File{
-                name: path,
-                size: byte_size(bin),
-                mtime: 0
-              }
-          end
+          struct!(struct, name: path, mtime: 0, visibility: meta.visibility)
         end
       end)
 
