@@ -43,6 +43,7 @@ defmodule Depot.Adapter.Local do
 
   """
   use Bitwise, only_operators: true
+  alias Depot.Visibility.UnixVisibilityConverter
   alias Depot.Visibility.PortableUnixVisibilityConverter, as: DefaultVisibilityConverter
 
   defmodule Config do
@@ -50,8 +51,8 @@ defmodule Depot.Adapter.Local do
 
     @type t :: %__MODULE__{
             prefix: Path.t(),
-            converter: Depot.Visibility.UnixVisibilityConverter.t(),
-            visibility: Depot.Visibility.PortableUnixVisibilityConverter.Config.t()
+            converter: UnixVisibilityConverter.t(),
+            visibility: UnixVisibilityConverter.config()
           }
 
     defstruct prefix: nil, converter: nil, visibility: nil
