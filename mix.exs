@@ -4,7 +4,7 @@ defmodule Depot.MixProject do
   def project do
     [
       app: :depot,
-      version: "0.5.0",
+      version: "0.5.1",
       elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -54,6 +54,7 @@ defmodule Depot.MixProject do
   defp deps do
     [
       {:ex_doc, "~> 0.21", only: :dev, runtime: false},
+      # Replace with ExUnit tmp_dir on 1.11
       {
         :briefly,
         git: "https://github.com/CargoSense/briefly", ref: "06ac1a6", only: :test
