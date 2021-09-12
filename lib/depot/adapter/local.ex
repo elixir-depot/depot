@@ -81,9 +81,15 @@ defmodule Depot.Adapter.Local do
   def write(%Config{} = config, path, contents, opts) do
     path = full_path(config, path)
 
+    mode =
+      with {:ok, visibility} <- Keyword.fetch(opts, :visibility) do
+        mode = config.converter.for_file(config.visibility, visibility)
+        {:ok, mode}
+      end
+
     with :ok <- ensure_directory(config, Path.dirname(path), opts),
          :ok <- File.write(path, contents),
-         :ok <- maybe_set_visibility(config, path, opts) do
+         :ok <- maybe_chmod(path, mode) do
       :ok
     end
   end
@@ -231,11 +237,8 @@ defmodule Depot.Adapter.Local do
 
       visibility =
         case type do
-          :directory ->
-            config.converter.from_directory(config.visibility, mode)
-
-          _ ->
-            config.converter.from_file(config.visibility, mode)
+          :directory -> config.converter.from_directory(config.visibility, mode)
+          _ -> config.converter.from_file(config.visibility, mode)
         end
 
       {:ok, visibility}
@@ -252,58 +255,37 @@ defmodule Depot.Adapter.Local do
     Depot.RelativePath.join_prefix(config.prefix, path)
   end
 
-  defp maybe_set_visibility(config, path, opts) do
-    case Keyword.fetch(opts, :visibility) do
-      {:ok, visibility} ->
-        mode = config.converter.for_file(config.visibility, visibility)
-        File.chmod(path, mode)
-
-      _ ->
-        :ok
-    end
-  end
-
   defp ensure_directory(config, path, opts) do
     mode =
-      case Keyword.fetch(opts, :directory_visibility) do
-        {:ok, visibility} -> config.converter.for_directory(config.visibility, visibility)
-        _ -> false
+      with {:ok, visibility} <- Keyword.fetch(opts, :directory_visibility) do
+        mode = config.converter.for_directory(config.visibility, visibility)
+        {:ok, mode}
       end
 
-    do_mkdir_p(IO.chardata_to_string(path), mode)
-  end
-
-  defp do_mkdir_p("/", _) do
-    :ok
+    path
+    |> IO.chardata_to_string()
+    |> Path.join("/")
+    |> do_mkdir_p(mode)
   end
 
   defp do_mkdir_p(path, mode) do
-    if File.dir?(path) do
-      :ok
-    else
-      parent = Path.dirname(path)
-
-      if parent == path do
-        # Protect against infinite loop
-        {:error, :einval}
-      else
-        _ = do_mkdir_p(parent, mode)
-
-        case :file.make_dir(path) do
-          {:error, :eexist} = error ->
-            if File.dir?(path), do: :ok, else: error
-
-          :ok ->
-            if mode do
-              File.chmod(path, mode)
-            else
-              :ok
-            end
-
-          other ->
-            other
-        end
-      end
+    with :missing <- existing_directory(path),
+         parent = Path.dirname(path),
+         :ok <- infinite_loop_protect(path),
+         :ok <- do_mkdir_p(parent, mode),
+         :ok <- :file.make_dir(path) do
+      maybe_chmod(path, mode)
     end
   end
+
+  def existing_directory(path) do
+    if File.dir?(path), do: :ok, else: :missing
+  end
+
+  defp infinite_loop_protect(path) do
+    if Path.dirname(path) != path, do: :ok, else: {:error, :einval}
+  end
+
+  defp maybe_chmod(path, {:ok, mode}), do: File.chmod(path, mode)
+  defp maybe_chmod(_path, :error), do: :ok
 end
