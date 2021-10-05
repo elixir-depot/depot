@@ -5,7 +5,7 @@ defmodule Depot.MixProject do
     [
       app: :depot,
       version: "0.5.1",
-      elixir: "~> 1.10",
+      elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
