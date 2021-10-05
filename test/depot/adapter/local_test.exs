@@ -4,22 +4,19 @@ defmodule Depot.Adapter.LocalTest do
   import Depot.AdapterTest
   doctest Depot.Adapter.Local
 
+  @moduletag :tmp_dir
+
   def match_mode(input, match) do
     (input &&& 0o777) == match
   end
 
-  setup do
-    {:ok, prefix} = Briefly.create(directory: true)
-    {:ok, prefix: prefix}
-  end
-
-  adapter_test %{prefix: prefix} do
+  adapter_test %{tmp_dir: prefix} do
     filesystem = Depot.Adapter.Local.configure(prefix: prefix)
     {:ok, filesystem: filesystem}
   end
 
   describe "write" do
-    test "success", %{prefix: prefix} do
+    test "success", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = Depot.Adapter.Local.write(config, "test.txt", "Hello World", [])
@@ -27,7 +24,7 @@ defmodule Depot.Adapter.LocalTest do
       assert {:ok, "Hello World"} = File.read(Path.join(prefix, "test.txt"))
     end
 
-    test "folders are automatically created is missing", %{prefix: prefix} do
+    test "folders are automatically created is missing", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = Depot.Adapter.Local.write(config, "folder/test.txt", "Hello World", [])
@@ -35,7 +32,7 @@ defmodule Depot.Adapter.LocalTest do
       assert {:ok, "Hello World"} = File.read(Path.join(prefix, "folder/test.txt"))
     end
 
-    test "stream options", %{prefix: prefix} do
+    test "stream options", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       assert {:ok, %File.Stream{line_or_bytes: :line, modes: [:raw, :read_ahead, :binary]}} =
@@ -48,7 +45,7 @@ defmodule Depot.Adapter.LocalTest do
                Depot.Adapter.Local.write_stream(config, "test.txt", modes: [encoding: :utf8])
     end
 
-    test "stream success", %{prefix: prefix} do
+    test "stream success", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       assert {:ok, %File.Stream{} = stream} =
@@ -59,7 +56,7 @@ defmodule Depot.Adapter.LocalTest do
       assert {:ok, "Hello World"} = File.read(Path.join(prefix, "test.txt"))
     end
 
-    test "default visibility", %{prefix: prefix} do
+    test "default visibility", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = Depot.Adapter.Local.write(config, "public.txt", "Hello World", visibility: :public)
@@ -72,7 +69,7 @@ defmodule Depot.Adapter.LocalTest do
       assert match_mode(mode, 0o600)
     end
 
-    test "folder visibility", %{prefix: prefix} do
+    test "folder visibility", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok =
@@ -95,7 +92,7 @@ defmodule Depot.Adapter.LocalTest do
   end
 
   describe "read" do
-    test "success", %{prefix: prefix} do
+    test "success", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = File.write(Path.join(prefix, "test.txt"), "Hello World")
@@ -103,7 +100,7 @@ defmodule Depot.Adapter.LocalTest do
       assert {:ok, "Hello World"} = Depot.Adapter.Local.read(config, "test.txt")
     end
 
-    test "stream options", %{prefix: prefix} do
+    test "stream options", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       assert {:ok, %File.Stream{line_or_bytes: :line, modes: [:raw, :read_ahead, :binary]}} =
@@ -116,7 +113,7 @@ defmodule Depot.Adapter.LocalTest do
                Depot.Adapter.Local.read_stream(config, "test.txt", modes: [encoding: :utf8])
     end
 
-    test "stream success", %{prefix: prefix} do
+    test "stream success", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = File.write(Path.join(prefix, "test.txt"), "Hello World")
@@ -129,7 +126,7 @@ defmodule Depot.Adapter.LocalTest do
   end
 
   describe "delete" do
-    test "success", %{prefix: prefix} do
+    test "success", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = File.write(Path.join(prefix, "test.txt"), "Hello World")
@@ -139,7 +136,7 @@ defmodule Depot.Adapter.LocalTest do
       assert {:error, :enoent} = File.read(Path.join(prefix, "folder/test.txt"))
     end
 
-    test "successful even if no file to delete", %{prefix: prefix} do
+    test "successful even if no file to delete", %{tmp_dir: prefix} do
       {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
 
       assert :ok = Depot.Adapter.Local.delete(config, "test.txt")

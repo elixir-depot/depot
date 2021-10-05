@@ -8,18 +8,15 @@ defmodule DepotTest do
   end
 
   describe "filesystem without own processes" do
-    setup do
-      {:ok, prefix} = Briefly.create(directory: true)
-      {:ok, prefix: prefix}
-    end
+    @describetag :tmp_dir
 
-    test "user can write to filesystem", %{prefix: prefix} do
+    test "user can write to filesystem", %{tmp_dir: prefix} do
       filesystem = Depot.Adapter.Local.configure(prefix: prefix)
 
       assert :ok = Depot.write(filesystem, "test.txt", "Hello World")
     end
 
-    test "user can check if files exist on a filesystem", %{prefix: prefix} do
+    test "user can check if files exist on a filesystem", %{tmp_dir: prefix} do
       filesystem = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = Depot.write(filesystem, "test.txt", "Hello World")
@@ -28,7 +25,7 @@ defmodule DepotTest do
       assert {:ok, :missing} = Depot.file_exists(filesystem, "not-test.txt")
     end
 
-    test "user can read from filesystem", %{prefix: prefix} do
+    test "user can read from filesystem", %{tmp_dir: prefix} do
       filesystem = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = Depot.write(filesystem, "test.txt", "Hello World")
@@ -36,7 +33,7 @@ defmodule DepotTest do
       assert {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
     end
 
-    test "user can delete from filesystem", %{prefix: prefix} do
+    test "user can delete from filesystem", %{tmp_dir: prefix} do
       filesystem = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = Depot.write(filesystem, "test.txt", "Hello World")
@@ -45,7 +42,7 @@ defmodule DepotTest do
       assert {:error, _} = Depot.read(filesystem, "test.txt")
     end
 
-    test "user can move files", %{prefix: prefix} do
+    test "user can move files", %{tmp_dir: prefix} do
       filesystem = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = Depot.write(filesystem, "test.txt", "Hello World")
@@ -55,7 +52,7 @@ defmodule DepotTest do
       assert {:ok, "Hello World"} = Depot.read(filesystem, "not-test.txt")
     end
 
-    test "user can copy files", %{prefix: prefix} do
+    test "user can copy files", %{tmp_dir: prefix} do
       filesystem = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = Depot.write(filesystem, "test.txt", "Hello World")
@@ -65,7 +62,7 @@ defmodule DepotTest do
       assert {:ok, "Hello World"} = Depot.read(filesystem, "not-test.txt")
     end
 
-    test "user can list files", %{prefix: prefix} do
+    test "user can list files", %{tmp_dir: prefix} do
       filesystem = Depot.Adapter.Local.configure(prefix: prefix)
 
       :ok = Depot.write(filesystem, "test.txt", "Hello World")
@@ -80,12 +77,9 @@ defmodule DepotTest do
   end
 
   describe "module based filesystem without own processes" do
-    setup do
-      {:ok, prefix} = Briefly.create(directory: true)
-      {:ok, prefix: prefix}
-    end
+    @describetag :tmp_dir
 
-    test "user can write to filesystem", %{prefix: prefix} do
+    test "user can write to filesystem", %{tmp_dir: prefix} do
       defmodule Local.WriteTest do
         use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
@@ -95,7 +89,7 @@ defmodule DepotTest do
       assert :ok = Local.WriteTest.write("test.txt", "Hello World")
     end
 
-    test "user can check if files exist on a filesystem", %{prefix: prefix} do
+    test "user can check if files exist on a filesystem", %{tmp_dir: prefix} do
       defmodule Local.FileExistsTest do
         use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
@@ -108,7 +102,7 @@ defmodule DepotTest do
       assert {:ok, :missing} = Local.FileExistsTest.file_exists("not-test.txt")
     end
 
-    test "user can read from filesystem", %{prefix: prefix} do
+    test "user can read from filesystem", %{tmp_dir: prefix} do
       defmodule Local.ReadTest do
         use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
@@ -120,7 +114,7 @@ defmodule DepotTest do
       assert {:ok, "Hello World"} = Local.ReadTest.read("test.txt")
     end
 
-    test "user can delete from filesystem", %{prefix: prefix} do
+    test "user can delete from filesystem", %{tmp_dir: prefix} do
       defmodule Local.DeleteTest do
         use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
@@ -133,7 +127,7 @@ defmodule DepotTest do
       assert {:error, _} = Local.DeleteTest.read("test.txt")
     end
 
-    test "user can move files", %{prefix: prefix} do
+    test "user can move files", %{tmp_dir: prefix} do
       defmodule Local.MoveTest do
         use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
@@ -147,7 +141,7 @@ defmodule DepotTest do
       assert {:ok, "Hello World"} = Local.MoveTest.read("not-test.txt")
     end
 
-    test "user can copy files", %{prefix: prefix} do
+    test "user can copy files", %{tmp_dir: prefix} do
       defmodule Local.CopyTest do
         use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
@@ -161,7 +155,7 @@ defmodule DepotTest do
       assert {:ok, "Hello World"} = Local.CopyTest.read("not-test.txt")
     end
 
-    test "user can list files", %{prefix: prefix} do
+    test "user can list files", %{tmp_dir: prefix} do
       defmodule Local.ListContentsTest do
         use Depot.Filesystem,
           adapter: Depot.Adapter.Local,
@@ -363,13 +357,14 @@ defmodule DepotTest do
   end
 
   describe "filesystem independant" do
-    setup do
-      {:ok, prefix} = Briefly.create(directory: true)
+    @describetag :tmp_dir
+
+    setup %{tmp_dir: prefix} do
       filesystem = Depot.Adapter.Local.configure(prefix: prefix)
       {:ok, filesystem: filesystem}
     end
 
-    test "reads configuration from :otp_app" do
+    test "reads configuration from :otp_app", context do
       configuration = [
         adapter: Depot.Adapter.Local,
         prefix: "ziKK7t5LzV5XiJjYh30KxCLorRXqLwwEnZYJ"
@@ -402,9 +397,12 @@ defmodule DepotTest do
   end
 
   describe "copying between different filesystems" do
-    setup do
-      {:ok, prefix_a} = Briefly.create(directory: true)
-      {:ok, prefix_b} = Briefly.create(directory: true)
+    @describetag :tmp_dir
+
+    setup %{tmp_dir: prefix} do
+      prefix_a = Path.join(prefix, "a")
+      prefix_b = Path.join(prefix, "b")
+
       {:ok, prefixes: [prefix_a, prefix_b]}
     end
 
