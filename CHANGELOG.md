@@ -7,7 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 ### Added
 - Added visibility handling with callbacks and converters
-
+### Changed
+- Updated Elixir to ~> 1.11
+- Replaced Briefly test dependency with ExUnit's :tmp_dir
 
 ## [0.5.1] - 2021-09-12
 ### Changed
