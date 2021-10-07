@@ -4,7 +4,7 @@ defmodule Depot.Adapter.Local do
 
   ## Direct usage
 
-      iex> {:ok, prefix} = Briefly.create(directory: true)
+      iex> prefix = System.tmp_dir!()
       iex> filesystem = Depot.Adapter.Local.configure(prefix: prefix)
       iex> :ok = Depot.write(filesystem, "test.txt", "Hello World")
       iex> {:ok, "Hello World"} = Depot.read(filesystem, "test.txt")
