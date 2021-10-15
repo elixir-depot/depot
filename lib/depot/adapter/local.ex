@@ -178,8 +178,17 @@ defmodule Depot.Adapter.Local do
             stat.type in [:directory, :regular] do
           struct =
             case stat.type do
-              :directory -> Depot.Stat.Dir
-              :regular -> Depot.Stat.File
+              :directory ->
+                Depot.Stat.Dir
+
+              :regular ->
+                filepath =
+                  case Depot.RelativePath.normalize(Path.relative(path)) do
+                    {:ok, normalized_path} -> normalized_path
+                    {:error, _} -> path
+                  end
+
+                %Depot.Stat.File{path: filepath}
             end
 
           struct!(struct,

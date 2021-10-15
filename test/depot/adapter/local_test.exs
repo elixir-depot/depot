@@ -10,6 +10,12 @@ defmodule Depot.Adapter.LocalTest do
     (input &&& 0o777) == match
   end
 
+  defmacrop assert_in_list(list, match) do
+    quote do
+      assert Enum.any?(unquote(list), &match?(unquote(match), &1))
+    end
+  end
+
   adapter_test %{tmp_dir: prefix} do
     filesystem = Depot.Adapter.Local.configure(prefix: prefix)
     {:ok, filesystem: filesystem}
@@ -122,6 +128,32 @@ defmodule Depot.Adapter.LocalTest do
                Depot.Adapter.Local.read_stream(config, "test.txt", [])
 
       assert Enum.into(stream, <<>>) == "Hello World"
+    end
+  end
+
+  describe "listing contents" do
+    test "lists files and folders", %{tmp_dir: prefix} do
+      {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
+
+      :ok = Depot.Adapter.Local.write(config, "test.txt", "Hello World", [])
+      :ok = Depot.Adapter.Local.write(config, "folder/test.txt", "Hello World", [])
+
+      {:ok, contents} = Depot.Adapter.Local.list_contents(config, ".")
+
+      assert length(contents) == 2
+      assert_in_list contents, %Depot.Stat.File{name: "test.txt", path: ""}
+      assert_in_list contents, %Depot.Stat.Dir{name: "folder"}
+    end
+
+    test "files listed have path relative to filesystem", %{tmp_dir: prefix} do
+      {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
+
+      :ok = Depot.Adapter.Local.write(config, "deeply/nested/folder/test.txt", "Hello World", [])
+
+      {:ok, contents} = Depot.Adapter.Local.list_contents(config, "/deeply/nested/folder")
+
+      assert length(contents) == 1
+      assert_in_list contents, %Depot.Stat.File{name: "test.txt", path: "deeply/nested/folder"}
     end
   end
 

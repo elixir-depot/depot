@@ -3,6 +3,12 @@ defmodule Depot.Adapter.InMemoryTest do
   import Depot.AdapterTest
   doctest Depot.Adapter.InMemory
 
+  defmacrop assert_in_list(list, match) do
+    quote do
+      assert Enum.any?(unquote(list), &match?(unquote(match), &1))
+    end
+  end
+
   adapter_test %{test: test} do
     filesystem = Depot.Adapter.InMemory.configure(name: test)
     start_supervised(filesystem)
@@ -66,6 +72,37 @@ defmodule Depot.Adapter.InMemoryTest do
                Depot.Adapter.InMemory.read_stream(config, "test.txt", [])
 
       assert Enum.into(stream, <<>>) == "Hello World"
+    end
+  end
+
+  describe "listing contents" do
+    test "lists files and folders", %{test: test} do
+      {_, config} = filesystem = Depot.Adapter.InMemory.configure(name: test)
+
+      start_supervised(filesystem)
+
+      :ok = Depot.Adapter.InMemory.write(config, "test.txt", "Hello World", [])
+      :ok = Depot.Adapter.InMemory.write(config, "folder/test.txt", "Hello World", [])
+
+      {:ok, contents} = Depot.Adapter.InMemory.list_contents(config, "/")
+
+      assert length(contents) == 2
+      assert_in_list contents, %Depot.Stat.File{name: "test.txt", path: ""}
+      assert_in_list contents, %Depot.Stat.Dir{name: "folder"}
+    end
+
+    test "lists files include a path relative to the filesystem", %{test: test} do
+      {_, config} = filesystem = Depot.Adapter.InMemory.configure(name: test)
+
+      start_supervised(filesystem)
+
+      :ok =
+        Depot.Adapter.InMemory.write(config, "deeply/nested/folder/test.txt", "Hello World", [])
+
+      {:ok, contents} = Depot.Adapter.InMemory.list_contents(config, "/deeply/nested/folder")
+
+      assert length(contents) == 1
+      assert_in_list contents, %Depot.Stat.File{name: "test.txt", path: "deeply/nested/folder"}
     end
   end
 
