@@ -227,14 +227,23 @@ defmodule Depot.Adapter.InMemory do
             _ -> %{}
           end
 
-        for {path, {content, meta}} <- paths do
+        for {name, {content, meta}} <- paths do
           struct =
             case content do
-              %{} -> %Depot.Stat.Dir{size: 0}
-              bin when is_binary(bin) -> %Depot.Stat.File{size: byte_size(bin)}
+              %{} ->
+                %Depot.Stat.Dir{size: 0}
+
+              bin when is_binary(bin) ->
+                filepath =
+                  case Depot.RelativePath.normalize(Path.relative(path)) do
+                    {:ok, normalized_path} -> normalized_path
+                    {:error, _} -> path
+                  end
+
+                %Depot.Stat.File{size: byte_size(bin), path: filepath}
             end
 
-          struct!(struct, name: path, mtime: 0, visibility: meta.visibility)
+          struct!(struct, name: name, mtime: 0, visibility: meta.visibility)
         end
       end)
 

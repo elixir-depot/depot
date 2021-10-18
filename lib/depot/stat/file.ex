@@ -1,3 +1,3 @@
 defmodule Depot.Stat.File do
-  defstruct name: nil, size: nil, mtime: nil, visibility: nil
+  defstruct name: nil, path: nil, size: nil, mtime: nil, visibility: nil
 end

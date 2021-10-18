@@ -2,6 +2,7 @@ defmodule Depot.Adapter.LocalTest do
   use ExUnit.Case, async: true
   use Bitwise, only_operators: true
   import Depot.AdapterTest
+  import Depot.ListAssertions
   doctest Depot.Adapter.Local
 
   @moduletag :tmp_dir
@@ -122,6 +123,32 @@ defmodule Depot.Adapter.LocalTest do
                Depot.Adapter.Local.read_stream(config, "test.txt", [])
 
       assert Enum.into(stream, <<>>) == "Hello World"
+    end
+  end
+
+  describe "listing contents" do
+    test "lists files and folders", %{tmp_dir: prefix} do
+      {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
+
+      :ok = Depot.Adapter.Local.write(config, "test.txt", "Hello World", [])
+      :ok = Depot.Adapter.Local.write(config, "folder/test.txt", "Hello World", [])
+
+      {:ok, contents} = Depot.Adapter.Local.list_contents(config, ".")
+
+      assert length(contents) == 2
+      assert_in_list contents, %Depot.Stat.File{name: "test.txt", path: ""}
+      assert_in_list contents, %Depot.Stat.Dir{name: "folder"}
+    end
+
+    test "files listed have path relative to filesystem", %{tmp_dir: prefix} do
+      {_, config} = Depot.Adapter.Local.configure(prefix: prefix)
+
+      :ok = Depot.Adapter.Local.write(config, "deeply/nested/folder/test.txt", "Hello World", [])
+
+      {:ok, contents} = Depot.Adapter.Local.list_contents(config, "/deeply/nested/folder")
+
+      assert length(contents) == 1
+      assert_in_list contents, %Depot.Stat.File{name: "test.txt", path: "deeply/nested/folder"}
     end
   end
 
