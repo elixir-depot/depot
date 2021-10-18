@@ -1,10 +1,4 @@
 defmodule Depot.AdapterTest do
-  defmacro in_list(list, match) do
-    quote do
-      Enum.any?(unquote(list), &match?(unquote(match), &1))
-    end
-  end
-
   defp tests do
     quote do
       test "user can write to filesystem", %{filesystem: filesystem} do
@@ -113,19 +107,19 @@ defmodule Depot.AdapterTest do
 
         {:ok, list} = Depot.list_contents(filesystem, ".")
 
-        assert in_list(list, %Depot.Stat.Dir{name: "test"})
-        assert in_list(list, %Depot.Stat.Dir{name: "folder"})
-        assert in_list(list, %Depot.Stat.File{name: "test.txt", path: ""})
-        assert in_list(list, %Depot.Stat.File{name: "test-1.txt", path: ""})
+        assert_in_list list, %Depot.Stat.Dir{name: "test"}
+        assert_in_list list, %Depot.Stat.Dir{name: "folder"}
+        assert_in_list list, %Depot.Stat.File{name: "test.txt", path: ""}
+        assert_in_list list, %Depot.Stat.File{name: "test-1.txt", path: ""}
 
-        refute in_list(list, %Depot.Stat.File{name: "folder/test-1.txt"})
+        refute_in_list(list, %Depot.Stat.File{name: "folder/test-1.txt"})
 
         assert length(list) == 4
 
         {:ok, list} = Depot.list_contents(filesystem, "folder/")
 
         assert length(list) == 1
-        assert in_list(list, %Depot.Stat.File{path: "folder/", name: "test-1.txt"})
+        assert_in_list list, %Depot.Stat.File{path: "folder/", name: "test-1.txt"}
       end
 
       test "directory listings include visibility", %{filesystem: filesystem} do
@@ -136,10 +130,10 @@ defmodule Depot.AdapterTest do
 
         {:ok, list} = Depot.list_contents(filesystem, ".")
 
-        assert in_list(list, %Depot.Stat.Dir{name: "visible-dir", visibility: :public})
-        assert in_list(list, %Depot.Stat.Dir{name: "invisible-dir", visibility: :private})
-        assert in_list(list, %Depot.Stat.File{name: "visible.txt", visibility: :public})
-        assert in_list(list, %Depot.Stat.File{name: "invisible.txt", visibility: :private})
+        assert_in_list list, %Depot.Stat.Dir{name: "visible-dir", visibility: :public}
+        assert_in_list list, %Depot.Stat.Dir{name: "invisible-dir", visibility: :private}
+        assert_in_list list, %Depot.Stat.File{name: "visible.txt", visibility: :public}
+        assert_in_list list, %Depot.Stat.File{name: "invisible.txt", visibility: :private}
 
         assert length(list) == 4
       end
@@ -230,7 +224,6 @@ defmodule Depot.AdapterTest do
       describe "common adapter tests" do
         setup unquote(block)
 
-        import Depot.AdapterTest, only: [in_list: 2]
         unquote(tests())
       end
     end
@@ -241,7 +234,6 @@ defmodule Depot.AdapterTest do
       describe "common adapter tests" do
         setup unquote(context), unquote(block)
 
-        import Depot.AdapterTest, only: [in_list: 2]
         unquote(tests())
       end
     end
