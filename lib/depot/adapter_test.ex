@@ -115,12 +115,17 @@ defmodule Depot.AdapterTest do
 
         assert in_list(list, %Depot.Stat.Dir{name: "test"})
         assert in_list(list, %Depot.Stat.Dir{name: "folder"})
-        assert in_list(list, %Depot.Stat.File{name: "test.txt"})
-        assert in_list(list, %Depot.Stat.File{name: "test-1.txt"})
+        assert in_list(list, %Depot.Stat.File{name: "test.txt", path: ""})
+        assert in_list(list, %Depot.Stat.File{name: "test-1.txt", path: ""})
 
         refute in_list(list, %Depot.Stat.File{name: "folder/test-1.txt"})
 
         assert length(list) == 4
+
+        {:ok, list} = Depot.list_contents(filesystem, "folder/")
+
+        assert length(list) == 1
+        assert in_list(list, %Depot.Stat.File{path: "folder/", name: "test-1.txt"})
       end
 
       test "directory listings include visibility", %{filesystem: filesystem} do
