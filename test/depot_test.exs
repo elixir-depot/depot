@@ -1,11 +1,6 @@
 defmodule DepotTest do
   use ExUnit.Case, async: true
-
-  defmacrop assert_in_list(list, match) do
-    quote do
-      assert Enum.any?(unquote(list), &match?(unquote(match), &1))
-    end
-  end
+  import Depot.ListAssertions
 
   describe "filesystem without own processes" do
     @describetag :tmp_dir

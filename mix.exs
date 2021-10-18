@@ -8,6 +8,7 @@ defmodule Depot.MixProject do
       elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env()),
       description: description(),
       package: package(),
       name: "Depot",
@@ -28,6 +29,9 @@ defmodule Depot.MixProject do
       links: %{"GitHub" => "https://github.com/elixir-depot/depot"}
     ]
   end
+
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
 
   defp docs do
     [

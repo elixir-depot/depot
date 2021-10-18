@@ -1,13 +1,8 @@
 defmodule Depot.Adapter.InMemoryTest do
   use ExUnit.Case, async: true
   import Depot.AdapterTest
+  import Depot.ListAssertions
   doctest Depot.Adapter.InMemory
-
-  defmacrop assert_in_list(list, match) do
-    quote do
-      assert Enum.any?(unquote(list), &match?(unquote(match), &1))
-    end
-  end
 
   adapter_test %{test: test} do
     filesystem = Depot.Adapter.InMemory.configure(name: test)
